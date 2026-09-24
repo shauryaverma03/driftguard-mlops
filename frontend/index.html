@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DriftGuard — Autonomous MLOps Drift Detection & Retraining Engine</title>
-  <!-- Google Fonts: Inter & Outfit -->
+  
+  <!-- Google Fonts: Inter, Outfit & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -20,7 +21,7 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
             display: ['Outfit', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace'],
           },
@@ -43,9 +44,10 @@
             }
           },
           boxShadow: {
-            'glow-cyan': '0 0 25px -5px rgba(6, 182, 212, 0.35)',
-            'glow-indigo': '0 0 25px -5px rgba(99, 102, 241, 0.35)',
-            'glow-rose': '0 0 25px -5px rgba(244, 63, 94, 0.45)',
+            'glow-cyan': '0 0 25px -4px rgba(6, 182, 212, 0.4)',
+            'glow-indigo': '0 0 25px -4px rgba(99, 102, 241, 0.4)',
+            'glow-rose': '0 0 25px -4px rgba(244, 63, 94, 0.45)',
+            'glow-emerald': '0 0 25px -4px rgba(16, 185, 129, 0.4)',
           }
         }
       }
@@ -55,20 +57,16 @@
   <style>
     @keyframes pulse-slow {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.75; transform: scale(1.02); }
+      50% { opacity: 0.8; transform: scale(1.015); }
     }
     .pulse-alert {
-      animation: pulse-slow 2.2s infinite ease-in-out;
+      animation: pulse-slow 2s infinite ease-in-out;
     }
     .glass-card {
-      background: rgba(11, 17, 32, 0.75);
+      background: rgba(11, 17, 32, 0.8);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .glass-card-hover:hover {
-      background: rgba(16, 24, 44, 0.9);
-      border-color: rgba(99, 102, 241, 0.3);
     }
     .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
@@ -81,11 +79,19 @@
       background: #202d4d;
       border-radius: 4px;
     }
+    /* Number change flash highlight */
+    .flash-highlight {
+      animation: flash-pulse 0.6s ease-out;
+    }
+    @keyframes flash-pulse {
+      0% { color: #38bdf8; text-shadow: 0 0 12px rgba(56, 189, 248, 0.8); }
+      100% { color: inherit; text-shadow: none; }
+    }
     /* Tour Highlight Spotlight */
     .tour-highlight {
       position: relative;
       z-index: 60 !important;
-      box-shadow: 0 0 0 9999px rgba(3, 7, 18, 0.82), 0 0 25px 4px rgba(99, 102, 241, 0.8) !important;
+      box-shadow: 0 0 0 9999px rgba(3, 7, 18, 0.85), 0 0 30px 4px rgba(99, 102, 241, 0.85) !important;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       border-radius: 1rem;
     }
@@ -94,32 +100,32 @@
 <body class="bg-dark-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white flex flex-col">
 
   <!-- ==================== TOP NAVIGATION HEADER ==================== -->
-  <header class="border-b border-slate-800/80 bg-dark-900/85 backdrop-blur-xl sticky top-0 z-50">
+  <header class="border-b border-slate-800/80 bg-dark-900/90 backdrop-blur-xl sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
       
       <!-- Brand Logo -->
-      <div class="flex items-center space-x-3.5 cursor-pointer" onclick="switchTab('dashboard')">
-        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-brand-500 to-cyan-400 p-[1px] shadow-lg shadow-indigo-500/25">
-          <div class="h-full w-full bg-dark-900 rounded-[11px] flex items-center justify-center">
+      <div class="flex items-center space-x-3.5 cursor-pointer select-none" onclick="switchTab('dashboard')">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-brand-500 to-cyan-400 p-[1.5px] shadow-lg shadow-indigo-500/25">
+          <div class="h-full w-full bg-dark-900 rounded-[10px] flex items-center justify-center">
             <i data-lucide="shield-alert" class="w-5 h-5 text-indigo-400"></i>
           </div>
         </div>
         <div>
           <div class="flex items-center space-x-2">
-            <span class="font-display font-black text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">DriftGuard</span>
-            <span class="text-[10px] font-mono uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full font-bold">Autonomous MLOps</span>
+            <span class="font-display font-black text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">DriftGuard</span>
+            <span class="text-[10px] font-mono uppercase bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-bold">Autonomous MLOps</span>
           </div>
           <p class="text-[11px] text-slate-400 font-medium">Continuous Drift Detection & Zero-Downtime Hot-Swap</p>
         </div>
       </div>
 
       <!-- Navigation Tab Switcher -->
-      <div class="flex items-center bg-dark-850 border border-slate-800 p-1 rounded-xl text-xs font-semibold">
-        <button id="tabBtnDashboard" onclick="switchTab('dashboard')" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition">
+      <div class="flex items-center bg-dark-850 border border-slate-800 p-1 rounded-xl text-xs font-semibold shadow-inner">
+        <button id="tabBtnDashboard" onclick="switchTab('dashboard')" class="flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition">
           <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>
           <span>Live Operations</span>
         </button>
-        <button id="tabBtnArchitecture" onclick="switchTab('architecture')" class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition">
+        <button id="tabBtnArchitecture" onclick="switchTab('architecture')" class="flex items-center space-x-1.5 px-4 py-1.5 rounded-lg text-slate-400 hover:text-white transition">
           <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
           <span>Architecture & Specs</span>
         </button>
@@ -128,7 +134,7 @@
       <!-- Header Actions: Tour Guide, Backend Status, Docs -->
       <div class="flex items-center space-x-2.5">
         <!-- Interactive Tour Guide Button -->
-        <button onclick="startInteractiveTour(true)" class="text-xs font-semibold flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 hover:text-white transition shadow-sm">
+        <button onclick="startInteractiveTour(true)" class="text-xs font-semibold flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 active:scale-95 border border-indigo-500/30 text-indigo-300 hover:text-white transition shadow-sm">
           <i data-lucide="compass" class="w-3.5 h-3.5 text-indigo-400"></i>
           <span>Interactive Tour</span>
         </button>
@@ -139,12 +145,12 @@
           <span id="connectionText">Live :8000</span>
         </div>
 
-        <a href="http://127.0.0.1:8000/metrics" target="_blank" class="hidden sm:flex text-xs items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 border border-slate-700/80 text-slate-300 transition">
+        <a href="http://127.0.0.1:8000/metrics" target="_blank" class="hidden sm:flex text-xs font-medium items-center space-x-1 px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 active:scale-95 border border-slate-700/80 text-slate-300 transition">
           <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
           <span>/metrics</span>
         </a>
 
-        <a href="http://127.0.0.1:8000/docs" target="_blank" class="hidden sm:flex text-xs items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 border border-slate-700/80 text-slate-300 transition">
+        <a href="http://127.0.0.1:8000/docs" target="_blank" class="hidden sm:flex text-xs font-medium items-center space-x-1 px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 active:scale-95 border border-slate-700/80 text-slate-300 transition">
           <i data-lucide="file-code" class="w-3.5 h-3.5 text-indigo-400"></i>
           <span>API Docs</span>
         </a>
@@ -155,42 +161,42 @@
 
 
   <!-- ==================== HERO SHOWCASE BANNER ==================== -->
-  <section class="border-b border-slate-800/70 bg-gradient-to-b from-dark-900 via-dark-950 to-dark-950 py-8 px-4 sm:px-6 lg:px-8">
+  <section class="border-b border-slate-800/70 bg-gradient-to-b from-dark-900 via-dark-950 to-dark-950 py-7 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-      <div class="space-y-2 max-w-2xl">
+      <div class="space-y-2.5 max-w-2xl">
         <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
-          <span class="h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
+          <span class="h-2 w-2 rounded-full bg-cyan-400"></span>
           <span>Problem Statement #27 MLOps Pipeline</span>
         </div>
-        <h2 class="text-2xl sm:text-3xl font-display font-extrabold text-white tracking-tight">
+        <h2 class="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
           Automated Market Manipulation Drift Protection
         </h2>
-        <p class="text-sm text-slate-300 leading-relaxed">
-          DriftGuard continuously logs trade request feature vectors (<code class="text-cyan-300 font-mono text-xs">cancel_ratio</code>, <code class="text-cyan-300 font-mono text-xs">latency</code>, <code class="text-cyan-300 font-mono text-xs">z-score</code>, <code class="text-cyan-300 font-mono text-xs">frequency</code>), checks distribution shift via <strong>Kolmogorov-Smirnov statistical tests</strong>, validates retrained challenger models against baseline benchmarks, and promotes versions in MLflow with <strong>zero-downtime hot-swaps</strong>.
+        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          DriftGuard continuously logs trade request feature vectors (<code class="text-cyan-300 font-mono text-xs bg-dark-850 px-1 py-0.5 rounded border border-slate-800">cancel_ratio</code>, <code class="text-cyan-300 font-mono text-xs bg-dark-850 px-1 py-0.5 rounded border border-slate-800">latency</code>, <code class="text-cyan-300 font-mono text-xs bg-dark-850 px-1 py-0.5 rounded border border-slate-800">z-score</code>, <code class="text-cyan-300 font-mono text-xs bg-dark-850 px-1 py-0.5 rounded border border-slate-800">frequency</code>), checks distribution shift via <strong>Kolmogorov-Smirnov statistical tests</strong>, validates retrained challenger models against baseline benchmarks, and promotes versions in MLflow with <strong>zero-downtime hot-swaps</strong>.
         </p>
       </div>
 
       <!-- Quick Pipeline Highlights -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:w-auto">
-        <div class="glass-card rounded-xl p-3 text-center border-slate-800">
-          <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Inference</div>
+        <div class="glass-card rounded-xl p-3.5 text-center border-slate-800/80">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Inference</div>
           <div class="text-sm font-bold text-indigo-400 mt-1">FastAPI REST</div>
-          <div class="text-[10px] text-slate-500">&lt; 10ms Latency</div>
+          <div class="text-[11px] text-slate-400">&lt; 10ms Latency</div>
         </div>
-        <div class="glass-card rounded-xl p-3 text-center border-slate-800">
-          <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Drift Test</div>
+        <div class="glass-card rounded-xl p-3.5 text-center border-slate-800/80">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Drift Test</div>
           <div class="text-sm font-bold text-cyan-400 mt-1">KS 2-Sample</div>
-          <div class="text-[10px] text-slate-500">p &lt; 0.05 Trigger</div>
+          <div class="text-[11px] text-slate-400">p &lt; 0.05 Trigger</div>
         </div>
-        <div class="glass-card rounded-xl p-3 text-center border-slate-800">
-          <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Tracking</div>
+        <div class="glass-card rounded-xl p-3.5 text-center border-slate-800/80">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tracking</div>
           <div class="text-sm font-bold text-amber-400 mt-1">MLflow Registry</div>
-          <div class="text-[10px] text-slate-500">Automated Staging</div>
+          <div class="text-[11px] text-slate-400">Auto-Staging</div>
         </div>
-        <div class="glass-card rounded-xl p-3 text-center border-slate-800">
-          <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Deployment</div>
+        <div class="glass-card rounded-xl p-3.5 text-center border-slate-800/80">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Deployment</div>
           <div class="text-sm font-bold text-emerald-400 mt-1">Atomic Hot-Swap</div>
-          <div class="text-[10px] text-slate-500">Zero Restart</div>
+          <div class="text-[11px] text-slate-400">Zero Restart</div>
         </div>
       </div>
     </div>
@@ -207,37 +213,37 @@
       <div id="tourStep1" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
         <!-- Live Drift Status Primary Banner -->
-        <div id="driftBannerCard" class="glass-card rounded-2xl p-5 shadow-lg relative overflow-hidden transition-all duration-300">
+        <div id="driftBannerCard" class="glass-card rounded-2xl p-5 shadow-lg relative overflow-hidden transition-all duration-300 border border-emerald-500/30">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pipeline Drift State</span>
             <i data-lucide="activity" class="w-4 h-4 text-slate-400"></i>
           </div>
           <div class="mt-3 flex items-center space-x-3">
-            <span id="driftStatusIndicator" class="h-3.5 w-3.5 rounded-full bg-emerald-500"></span>
+            <span id="driftStatusIndicator" class="h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500"></span>
             <div id="driftStatusBadge" class="font-display text-2xl font-black text-emerald-400 tracking-wide">
               HEALTHY
             </div>
           </div>
-          <p id="driftStatusDesc" class="mt-2 text-xs text-slate-400">
+          <p id="driftStatusDesc" class="mt-2 text-xs text-slate-300 font-medium leading-normal">
             Features match training baseline (p &gt; 0.05)
           </p>
         </div>
 
         <!-- Active Production Model -->
-        <div class="glass-card rounded-2xl p-5 shadow-lg">
+        <div class="glass-card rounded-2xl p-5 shadow-lg border border-slate-800/80">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Serving Model</span>
             <i data-lucide="cpu" class="w-4 h-4 text-indigo-400"></i>
           </div>
           <div class="mt-3 flex items-baseline space-x-2">
             <span id="activeModelVersion" class="font-display text-3xl font-black text-white">v1</span>
-            <span id="activeModelStage" class="text-xs font-bold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">Production</span>
+            <span id="activeModelStage" class="text-xs font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded">Production</span>
           </div>
-          <p id="activeModelType" class="mt-2 text-xs text-slate-400">RandomForest (Zero Downtime)</p>
+          <p id="activeModelType" class="mt-2 text-xs text-slate-300 font-medium">RandomForest (Zero Downtime)</p>
         </div>
 
         <!-- Trade Requests Processed -->
-        <div class="glass-card rounded-2xl p-5 shadow-lg">
+        <div class="glass-card rounded-2xl p-5 shadow-lg border border-slate-800/80">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Requests Processed</span>
             <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
@@ -245,29 +251,29 @@
           <div class="mt-3">
             <span id="totalRequests" class="font-display text-3xl font-black text-white">0</span>
           </div>
-          <p id="streamingStateText" class="mt-2 text-xs text-slate-400 flex items-center space-x-1.5">
+          <p id="streamingStateText" class="mt-2 text-xs text-slate-300 font-medium flex items-center space-x-1.5">
             <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
             <span>Simulator Idle</span>
           </p>
         </div>
 
         <!-- Retrain Cycles -->
-        <div class="glass-card rounded-2xl p-5 shadow-lg">
+        <div class="glass-card rounded-2xl p-5 shadow-lg border border-slate-800/80">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Retrains Promoted</span>
             <i data-lucide="refresh-cw" class="w-4 h-4 text-amber-400"></i>
           </div>
           <div class="mt-3 flex items-baseline space-x-2">
             <span id="totalRetrains" class="font-display text-3xl font-black text-white">0</span>
-            <span class="text-xs text-slate-400 font-medium">auto-swaps</span>
+            <span class="text-xs text-slate-400 font-semibold">auto-swaps</span>
           </div>
-          <p class="mt-2 text-xs text-slate-400">Gated on held-out benchmark</p>
+          <p class="mt-2 text-xs text-slate-300 font-medium">Gated on held-out benchmark</p>
         </div>
       </div>
 
 
       <!-- 2. Interactive Traffic Simulator & Pipeline Control (Tour Step 2) -->
-      <div id="tourStep2" class="glass-card rounded-2xl p-5 shadow-lg space-y-4">
+      <div id="tourStep2" class="glass-card rounded-2xl p-5 shadow-lg space-y-4 border border-slate-800/80">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
           <div>
             <h3 class="text-base font-display font-bold text-white flex items-center space-x-2">
@@ -276,33 +282,33 @@
             </h3>
             <p class="text-xs text-slate-400 mt-0.5">Stream realistic synthetic market orders or inject a distribution shift batch to test live drift detection</p>
           </div>
-          <div id="actionFeedback" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-dark-850 border border-slate-700 text-slate-300 hidden">
+          <div id="actionFeedback" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-dark-850 border border-slate-700 text-slate-200 hidden shadow-md">
             Ready
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <!-- Action 1: Stream Normal -->
-          <button id="btnStreamTraffic" onclick="toggleStreamTraffic()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-indigo-600/20 disabled:opacity-50">
-            <i data-lucide="radio" class="w-4 h-4"></i>
+          <button id="btnStreamTraffic" onclick="toggleStreamTraffic()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-indigo-600/25 disabled:opacity-50 disabled:cursor-not-allowed">
+            <span id="btnStreamTrafficIcon"><i data-lucide="radio" class="w-4 h-4"></i></span>
             <span id="btnStreamTrafficText">Stream Normal Traffic</span>
           </button>
 
           <!-- Action 2: Inject Drift Batch -->
-          <button id="btnInjectDrift" onclick="injectDriftBatch()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-600 hover:from-rose-500 hover:to-amber-500 active:from-rose-700 text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-rose-600/25 disabled:opacity-50">
-            <i data-lucide="zap" class="w-4 h-4"></i>
+          <button id="btnInjectDrift" onclick="injectDriftBatch()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-600 hover:brightness-110 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-rose-600/25 disabled:opacity-50 disabled:cursor-not-allowed">
+            <span id="btnInjectDriftIcon"><i data-lucide="zap" class="w-4 h-4"></i></span>
             <span id="btnInjectDriftText">Inject Drifted Batch (50)</span>
           </button>
 
           <!-- Action 3: Force Retrain -->
-          <button id="btnForceRetrain" onclick="triggerManualRetrain()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-dark-850 hover:bg-dark-750 text-white border border-slate-700/80 font-semibold text-sm rounded-xl transition disabled:opacity-50">
-            <i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i>
+          <button id="btnForceRetrain" onclick="triggerManualRetrain()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-dark-850 hover:bg-dark-750 active:scale-[0.98] text-white border border-slate-700 font-semibold text-sm rounded-xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+            <span id="btnForceRetrainIcon"><i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i></span>
             <span id="btnForceRetrainText">Force Retraining Run</span>
           </button>
 
           <!-- Action 4: Reset Pipeline -->
-          <button id="btnResetPipeline" onclick="resetPipeline()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-dark-850 hover:bg-rose-950/40 text-slate-300 hover:text-rose-400 border border-slate-700/80 hover:border-rose-800/50 font-semibold text-sm rounded-xl transition disabled:opacity-50">
-            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          <button id="btnResetPipeline" onclick="resetPipeline()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-dark-850 hover:bg-rose-950/40 text-slate-300 hover:text-rose-300 border border-slate-700/80 hover:border-rose-800/60 active:scale-[0.98] font-semibold text-sm rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed">
+            <span id="btnResetPipelineIcon"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></span>
             <span id="btnResetPipelineText">Reset Pipeline (v1)</span>
           </button>
         </div>
@@ -310,7 +316,7 @@
 
 
       <!-- 3. KS-Test Drift Radar & Feature Analysis (Tour Step 3) -->
-      <div id="tourStep3" class="glass-card rounded-2xl p-5 shadow-lg space-y-4">
+      <div id="tourStep3" class="glass-card rounded-2xl p-5 shadow-lg space-y-4 border border-slate-800/80">
         <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
           <div>
             <h3 class="text-base font-display font-bold text-white flex items-center space-x-2">
@@ -321,31 +327,31 @@
           </div>
           <div class="flex items-center space-x-4 text-xs font-medium">
             <div class="flex items-center space-x-1.5 text-slate-300">
-              <span class="inline-block w-3.5 h-1 bg-rose-500 rounded"></span>
-              <span>Significance: <strong class="font-mono text-rose-400">p &lt; 0.05</strong></span>
+              <span class="inline-block w-3.5 h-1.5 bg-rose-500 rounded-sm"></span>
+              <span>Significance Threshold: <strong class="font-mono text-rose-400 font-bold">p &lt; 0.05</strong></span>
             </div>
-            <div class="text-slate-400 bg-dark-850 px-3 py-1 rounded-lg border border-slate-800">
-              Window: <span id="currentWindowSamples" class="font-mono text-white font-bold">0</span> / <span id="maxWindowSize" class="font-mono text-white">100</span> samples
+            <div class="text-slate-300 bg-dark-850 px-3 py-1.5 rounded-lg border border-slate-800 font-medium">
+              Rolling Window: <span id="currentWindowSamples" class="font-mono text-cyan-400 font-bold">0</span> / <span id="maxWindowSize" class="font-mono text-white">100</span> samples
             </div>
           </div>
         </div>
 
         <!-- Dynamic KS Feature Table & Visual Progress Bars -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-sm min-w-[680px]">
             <thead>
-              <tr class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800/80 bg-dark-850/50">
+              <tr class="text-[11px] font-semibold uppercase tracking-wider text-slate-300 border-b border-slate-800 bg-dark-850/80">
                 <th class="py-3 px-3.5">Feature Name</th>
                 <th class="py-3 px-3.5">Baseline Mean</th>
                 <th class="py-3 px-3.5">Window Mean</th>
                 <th class="py-3 px-3.5">KS Statistic</th>
-                <th class="py-3 px-3.5 w-60">p-value Distribution (p = 0.05 threshold)</th>
+                <th class="py-3 px-3.5 w-64">p-value Distribution (p = 0.05 mark)</th>
                 <th class="py-3 px-3.5 text-right">Status</th>
               </tr>
             </thead>
             <tbody id="driftTableBody" class="divide-y divide-slate-800/50 font-mono text-xs">
               <tr>
-                <td colspan="6" class="py-8 text-center text-slate-500 font-sans">
+                <td colspan="6" class="py-8 text-center text-slate-400 font-sans">
                   Accumulating market trade samples in rolling window...
                 </td>
               </tr>
@@ -356,7 +362,7 @@
 
 
       <!-- 4. Before & After Retraining Comparison (Tour Step 4) -->
-      <div id="tourStep4" class="glass-card rounded-2xl p-5 shadow-lg space-y-4">
+      <div id="tourStep4" class="glass-card rounded-2xl p-5 shadow-lg space-y-4 border border-slate-800/80">
         <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
           <div>
             <h3 class="text-base font-display font-bold text-white flex items-center space-x-2">
@@ -365,38 +371,38 @@
             </h3>
             <p class="text-xs text-slate-400 mt-0.5">Real validation gate performance comparison between the prior champion and the newly retrained challenger model</p>
           </div>
-          <span id="comparisonBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-dark-850 text-slate-400 border border-slate-700">
+          <span id="comparisonBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-dark-850 text-slate-300 border border-slate-700">
             Awaiting First Retrain
           </span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <!-- Prior Model Accuracy -->
-          <div class="bg-dark-900/90 border border-slate-800 rounded-xl p-4 text-center">
+          <div class="bg-dark-900/90 border border-slate-800 rounded-xl p-5 text-center">
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Prior Champion Accuracy</span>
-            <div id="compOldAccuracy" class="font-display text-4xl font-black text-slate-300 mt-2">
+            <div id="compOldAccuracy" class="font-display text-4xl font-black text-slate-200 mt-2">
               --%
             </div>
-            <span id="compOldVersion" class="text-xs text-slate-500 mt-1.5 block">Baseline Model</span>
+            <span id="compOldVersion" class="text-xs text-slate-400 mt-1.5 block">Baseline Model</span>
           </div>
 
           <!-- Retrained Model Accuracy -->
-          <div class="bg-dark-900/90 border border-emerald-800/40 rounded-xl p-4 text-center relative overflow-hidden">
+          <div class="bg-dark-900/90 border border-emerald-800/50 rounded-xl p-5 text-center relative overflow-hidden shadow-sm">
             <div class="absolute top-0 right-0 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-bl">PROMOTED</div>
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Retrained Challenger Accuracy</span>
             <div id="compNewAccuracy" class="font-display text-4xl font-black text-emerald-400 mt-2">
               --%
             </div>
-            <span id="compNewVersion" class="text-xs text-emerald-400/80 mt-1.5 block">Challenger Hot-Swapped</span>
+            <span id="compNewVersion" class="text-xs text-emerald-300/90 mt-1.5 block font-medium">Challenger Hot-Swapped</span>
           </div>
 
           <!-- Net Gain -->
-          <div class="bg-dark-900/90 border border-slate-800 rounded-xl p-4 text-center">
+          <div class="bg-dark-900/90 border border-slate-800 rounded-xl p-5 text-center">
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Adaptation Recovery</span>
             <div id="compGain" class="font-display text-4xl font-black text-cyan-400 mt-2">
               --%
             </div>
-            <span class="text-xs text-slate-500 mt-1.5 block">Drift Adaptation Metric</span>
+            <span class="text-xs text-slate-400 mt-1.5 block">Drift Adaptation Metric</span>
           </div>
         </div>
       </div>
@@ -406,7 +412,7 @@
       <div id="tourStep5" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         <!-- Model Version Registry -->
-        <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col">
+        <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col border border-slate-800/80">
           <div class="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
             <h3 class="text-base font-display font-bold text-white flex items-center space-x-2">
               <i data-lucide="database" class="w-5 h-5 text-indigo-400"></i>
@@ -415,19 +421,19 @@
             <span class="text-xs text-slate-400 font-medium">Auto-versioned</span>
           </div>
           <div class="overflow-x-auto custom-scrollbar flex-1">
-            <table class="w-full text-left text-xs">
+            <table class="w-full text-left text-xs min-w-[420px]">
               <thead>
-                <tr class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800/80 bg-dark-850/40">
-                  <th class="py-2.5 px-2.5">Version</th>
-                  <th class="py-2.5 px-2.5">Algorithm</th>
-                  <th class="py-2.5 px-2.5">Val Acc</th>
-                  <th class="py-2.5 px-2.5">Val F1</th>
-                  <th class="py-2.5 px-2.5">Stage</th>
+                <tr class="text-[11px] font-semibold uppercase tracking-wider text-slate-300 border-b border-slate-800 bg-dark-850/80">
+                  <th class="py-2.5 px-3">Version</th>
+                  <th class="py-2.5 px-3">Algorithm</th>
+                  <th class="py-2.5 px-3">Val Acc</th>
+                  <th class="py-2.5 px-3">Val F1</th>
+                  <th class="py-2.5 px-3">Stage</th>
                 </tr>
               </thead>
               <tbody id="modelRegistryBody" class="divide-y divide-slate-800/50 font-mono">
                 <tr>
-                  <td colspan="5" class="py-5 text-center text-slate-500 font-sans">Loading registered models...</td>
+                  <td colspan="5" class="py-6 text-center text-slate-400 font-sans">Loading registered models...</td>
                 </tr>
               </tbody>
             </table>
@@ -435,7 +441,7 @@
         </div>
 
         <!-- Pipeline Audit Event Log Stream -->
-        <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col">
+        <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col border border-slate-800/80">
           <div class="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
             <h3 class="text-base font-display font-bold text-white flex items-center space-x-2">
               <i data-lucide="clock" class="w-5 h-5 text-cyan-400"></i>
@@ -443,8 +449,8 @@
             </h3>
             <span class="text-xs text-slate-400 font-medium">Real-time Feed</span>
           </div>
-          <div id="eventLogContainer" class="space-y-2.5 max-h-72 overflow-y-auto pr-1 custom-scrollbar flex-1 text-xs">
-            <div class="text-slate-500 text-center py-6">Waiting for pipeline events...</div>
+          <div id="eventLogContainer" class="space-y-2.5 max-h-80 overflow-y-auto pr-1 custom-scrollbar flex-1 text-xs">
+            <div class="text-slate-400 text-center py-8">Waiting for pipeline events...</div>
           </div>
         </div>
 
@@ -455,43 +461,43 @@
 
     <!-- ==================== TAB 2: SYSTEM ARCHITECTURE & SPECS ==================== -->
     <div id="viewArchitecture" class="space-y-6 hidden">
-      <div class="glass-card rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
+      <div class="glass-card rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 border border-slate-800/80">
         <div class="border-b border-slate-800 pb-4">
-          <h2 class="text-xl sm:text-2xl font-display font-extrabold text-white">System Architecture & Pipeline Flow</h2>
-          <p class="text-sm text-slate-400 mt-1">Autonomous MLOps Lifecycle for Continuous Market Manipulation Detection</p>
+          <h2 class="text-xl sm:text-2xl font-display font-black text-white">System Architecture & Pipeline Flow</h2>
+          <p class="text-xs sm:text-sm text-slate-300 mt-1">Autonomous MLOps Lifecycle for Continuous Market Manipulation Detection</p>
         </div>
 
         <!-- Architecture Flow Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           
           <div class="bg-dark-900 border border-slate-800 rounded-xl p-4 space-y-2">
-            <div class="h-8 w-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold font-mono">1</div>
+            <div class="h-8 w-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold font-mono">1</div>
             <h4 class="font-bold text-white text-sm">Feature Ingestion & Serving</h4>
-            <p class="text-xs text-slate-400 leading-relaxed">
+            <p class="text-xs text-slate-300 leading-relaxed">
               FastAPI exposes <code class="text-cyan-300 font-mono">/predict</code> for scoring trades across 5 features. Incoming features and predictions are saved to the rolling SQLite window store.
             </p>
           </div>
 
           <div class="bg-dark-900 border border-slate-800 rounded-xl p-4 space-y-2">
-            <div class="h-8 w-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold font-mono">2</div>
+            <div class="h-8 w-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold font-mono">2</div>
             <h4 class="font-bold text-white text-sm">Continuous KS-Drift Engine</h4>
-            <p class="text-xs text-slate-400 leading-relaxed">
+            <p class="text-xs text-slate-300 leading-relaxed">
               Computes <code class="text-cyan-300 font-mono">scipy.stats.ks_2samp</code> per feature against the baseline distribution. Flags drift when <code class="text-rose-400 font-mono">p &lt; 0.05</code> on &ge; 3 features.
             </p>
           </div>
 
           <div class="bg-dark-900 border border-slate-800 rounded-xl p-4 space-y-2">
-            <div class="h-8 w-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold font-mono">3</div>
+            <div class="h-8 w-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold font-mono">3</div>
             <h4 class="font-bold text-white text-sm">Validation-Gated Retraining</h4>
-            <p class="text-xs text-slate-400 leading-relaxed">
+            <p class="text-xs text-slate-300 leading-relaxed">
               Auto-triggers challenger retraining. Gated against baseline validation and drifted test benchmarks before registering and staging in MLflow.
             </p>
           </div>
 
           <div class="bg-dark-900 border border-slate-800 rounded-xl p-4 space-y-2">
-            <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold font-mono">4</div>
+            <div class="h-8 w-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold font-mono">4</div>
             <h4 class="font-bold text-white text-sm">Zero-Downtime Hot-Swap</h4>
-            <p class="text-xs text-slate-400 leading-relaxed">
+            <p class="text-xs text-slate-300 leading-relaxed">
               Thread-safe model manager atomically swaps the active serving pointer in memory with zero downtime and emits Prometheus metrics on <code class="text-cyan-300 font-mono">/metrics</code>.
             </p>
           </div>
@@ -500,9 +506,9 @@
         <!-- Features Monitored Table -->
         <div class="pt-4 border-t border-slate-800">
           <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3">Market Features Monitored</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs font-mono">
-              <thead class="bg-dark-850 text-slate-400">
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left text-xs font-mono min-w-[640px]">
+              <thead class="bg-dark-850/80 text-slate-300 border-b border-slate-800 font-semibold">
                 <tr>
                   <th class="py-2.5 px-3">Feature Key</th>
                   <th class="py-2.5 px-3">Domain Meaning</th>
@@ -552,30 +558,30 @@
 
 
   <!-- ==================== INTERACTIVE TOUR MODAL TOOLTIP ==================== -->
-  <div id="tourModal" class="fixed bottom-8 right-8 z-[70] max-w-md w-full bg-dark-900/95 border-2 border-indigo-500/60 rounded-2xl p-5 shadow-2xl backdrop-blur-2xl hidden transform transition-all duration-300">
+  <div id="tourModal" class="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 left-4 sm:left-auto z-[70] max-w-md w-full bg-dark-900/95 border-2 border-indigo-500/70 rounded-2xl p-5 shadow-2xl backdrop-blur-2xl hidden transform transition-all duration-300">
     <div class="flex items-start justify-between">
       <div class="flex items-center space-x-2">
-        <div class="h-6 w-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs font-bold font-mono">
+        <div class="h-6 w-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs font-bold font-mono shadow-sm">
           <span id="tourStepNumber">1</span>
         </div>
         <h4 id="tourTitle" class="text-sm font-bold text-white font-display">Drift State & Metrics</h4>
       </div>
-      <button onclick="skipTour()" class="text-slate-400 hover:text-white p-1">
+      <button onclick="skipTour()" class="text-slate-400 hover:text-white p-1 transition" title="Close Tour">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
     </div>
 
-    <p id="tourContent" class="text-xs text-slate-300 mt-2.5 leading-relaxed">
+    <p id="tourContent" class="text-xs text-slate-300 mt-2.5 leading-relaxed font-normal">
       This primary badge monitors overall system health. It turns red with a pulsating alert as soon as the Kolmogorov-Smirnov statistical test detects distribution drift.
     </p>
 
     <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-800">
-      <span id="tourProgress" class="text-[11px] font-mono text-indigo-400">Step 1 of 5</span>
+      <span id="tourProgress" class="text-[11px] font-mono text-indigo-400 font-semibold">Step 1 of 5</span>
       <div class="flex items-center space-x-2">
-        <button id="tourPrevBtn" onclick="prevTourStep()" class="px-2.5 py-1 text-xs rounded-lg bg-dark-800 text-slate-300 hover:bg-dark-750 disabled:opacity-40">
+        <button id="tourPrevBtn" onclick="prevTourStep()" class="px-3 py-1.5 text-xs rounded-lg bg-dark-800 text-slate-300 hover:bg-dark-750 active:scale-95 disabled:opacity-40 transition font-medium">
           Back
         </button>
-        <button id="tourNextBtn" onclick="nextTourStep()" class="px-3 py-1 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm shadow-indigo-600/30">
+        <button id="tourNextBtn" onclick="nextTourStep()" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 active:scale-95 shadow-sm shadow-indigo-600/30 transition">
           Next
         </button>
       </div>
@@ -588,18 +594,32 @@
     const API_BASE = 'http://127.0.0.1:8000';
     let isStreamingTraffic = false;
 
+    // Cache previous values for visual flash updates on poll change
+    let prevTotalRequests = null;
+    let prevTotalRetrains = null;
+    let prevActiveVersion = null;
+
     // --- Cookie & LocalStorage Session Helpers ---
     function setCookie(name, value, days = 365) {
       const d = new Date();
       d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
       document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/;SameSite=Lax`;
-      localStorage.setItem(name, value);
+      try { localStorage.setItem(name, value); } catch (e) {}
     }
 
     function getCookie(name) {
       const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
       if (match) return match[2];
-      return localStorage.getItem(name);
+      try { return localStorage.getItem(name); } catch (e) { return null; }
+    }
+
+    // Helper: Flash highlight an element on value change
+    function triggerFlash(elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.classList.remove('flash-highlight');
+      void el.offsetWidth; // Force reflow
+      el.classList.add('flash-highlight');
     }
 
     // --- Tab Switcher ---
@@ -612,13 +632,13 @@
       if (tabName === 'architecture') {
         dash.classList.add('hidden');
         arch.classList.remove('hidden');
-        btnArch.className = 'flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition';
-        btnDash.className = 'flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition';
+        btnArch.className = 'flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition';
+        btnDash.className = 'flex items-center space-x-1.5 px-4 py-1.5 rounded-lg text-slate-400 hover:text-white transition';
       } else {
         arch.classList.add('hidden');
         dash.classList.remove('hidden');
-        btnDash.className = 'flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition';
-        btnArch.className = 'flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition';
+        btnDash.className = 'flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition';
+        btnArch.className = 'flex items-center space-x-1.5 px-4 py-1.5 rounded-lg text-slate-400 hover:text-white transition';
       }
       lucide.createIcons();
     }
@@ -664,7 +684,6 @@
     }
 
     function renderTourStep() {
-      // Clear previous highlights
       TOUR_STEPS.forEach(step => {
         const el = document.getElementById(step.targetId);
         if (el) el.classList.remove('tour-highlight');
@@ -719,8 +738,8 @@
     function showFeedback(text, isError = false) {
       const el = document.getElementById('actionFeedback');
       el.textContent = text;
-      el.className = `text-xs font-semibold px-3 py-1.5 rounded-lg border ${
-        isError ? 'bg-rose-950/80 border-rose-800 text-rose-300' : 'bg-emerald-950/80 border-emerald-800 text-emerald-300'
+      el.className = `text-xs font-semibold px-3 py-1.5 rounded-lg border shadow-lg ${
+        isError ? 'bg-rose-950/90 border-rose-800 text-rose-200' : 'bg-emerald-950/90 border-emerald-800 text-emerald-200'
       }`;
       el.classList.remove('hidden');
       setTimeout(() => { el.classList.add('hidden'); }, 4000);
@@ -737,9 +756,22 @@
         document.getElementById('connectionStatus').className = 'flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/80 text-emerald-300';
         document.getElementById('connectionText').textContent = 'Live :8000';
 
-        document.getElementById('activeModelVersion').textContent = health.active_model_version || 'v1';
-        document.getElementById('totalRequests').textContent = (health.total_requests_processed || 0).toLocaleString();
-        document.getElementById('totalRetrains').textContent = health.total_retrains_triggered || 0;
+        const reqCount = health.total_requests_processed || 0;
+        const retrainCount = health.total_retrains_triggered || 0;
+        const activeVer = health.active_model_version || 'v1';
+
+        // Trigger flash if numbers changed
+        if (prevTotalRequests !== null && prevTotalRequests !== reqCount) triggerFlash('totalRequests');
+        if (prevTotalRetrains !== null && prevTotalRetrains !== retrainCount) triggerFlash('totalRetrains');
+        if (prevActiveVersion !== null && prevActiveVersion !== activeVer) triggerFlash('activeModelVersion');
+
+        prevTotalRequests = reqCount;
+        prevTotalRetrains = retrainCount;
+        prevActiveVersion = activeVer;
+
+        document.getElementById('activeModelVersion').textContent = activeVer;
+        document.getElementById('totalRequests').textContent = reqCount.toLocaleString();
+        document.getElementById('totalRetrains').textContent = retrainCount;
         document.getElementById('activeModelType').textContent = `${health.model_type || 'RandomForest'} (Zero Downtime)`;
 
         isStreamingTraffic = !!health.is_streaming;
@@ -793,19 +825,19 @@
         banner.className = 'glass-card rounded-2xl p-5 shadow-xl shadow-rose-950/40 relative overflow-hidden border-2 border-rose-500/80 pulse-alert';
         badge.textContent = 'DRIFT DETECTED';
         badge.className = 'font-display text-2xl font-black text-rose-400 tracking-wide';
-        indicator.className = 'h-3.5 w-3.5 rounded-full bg-rose-500 animate-ping';
+        indicator.className = 'h-3.5 w-3.5 rounded-full bg-rose-500 animate-ping shadow-sm shadow-rose-500';
         desc.textContent = `Alert: ${drift.drifted_features_count} features breached p < 0.05 threshold`;
       } else if (drift.status === 'ACCUMULATING_DATA') {
         banner.className = 'glass-card rounded-2xl p-5 shadow-lg border border-amber-500/40';
         badge.textContent = 'ACCUMULATING';
         badge.className = 'font-display text-2xl font-black text-amber-400 tracking-wide';
-        indicator.className = 'h-3.5 w-3.5 rounded-full bg-amber-500';
+        indicator.className = 'h-3.5 w-3.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500';
         desc.textContent = `Gathering feature samples (${drift.current_samples}/20 min)`;
       } else {
         banner.className = 'glass-card rounded-2xl p-5 shadow-lg border border-emerald-500/30';
         badge.textContent = 'HEALTHY';
         badge.className = 'font-display text-2xl font-black text-emerald-400 tracking-wide';
-        indicator.className = 'h-3.5 w-3.5 rounded-full bg-emerald-500';
+        indicator.className = 'h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500';
         desc.textContent = 'Feature distributions match training baseline (p > 0.05)';
       }
 
@@ -815,7 +847,7 @@
       const featKeys = Object.keys(features);
 
       if (featKeys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-500 font-sans">No feature logs in current window.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 font-sans">No feature logs in current window.</td></tr>`;
         return;
       }
 
@@ -831,24 +863,24 @@
             <td class="py-3 px-3.5 font-bold ${isDrift ? 'text-rose-400' : 'text-slate-200'}">
               ${key}
             </td>
-            <td class="py-3 px-3.5 text-slate-400">${item.baseline_mean.toFixed(2)}</td>
-            <td class="py-3 px-3.5 ${isDrift ? 'text-rose-300 font-bold' : 'text-slate-300'}">${item.current_mean.toFixed(2)}</td>
-            <td class="py-3 px-3.5 font-mono">${item.ks_statistic.toFixed(4)}</td>
+            <td class="py-3 px-3.5 text-slate-300 font-mono">${item.baseline_mean.toFixed(2)}</td>
+            <td class="py-3 px-3.5 ${isDrift ? 'text-rose-300 font-bold' : 'text-slate-300'} font-mono">${item.current_mean.toFixed(2)}</td>
+            <td class="py-3 px-3.5 font-mono text-slate-300">${item.ks_statistic.toFixed(4)}</td>
             <td class="py-3 px-3.5">
               <div class="space-y-1">
                 <div class="flex justify-between text-[11px] font-mono">
-                  <span class="${isDrift ? 'text-rose-400 font-bold' : 'text-slate-400'}">p = ${pVal.toFixed(4)}</span>
-                  <span class="text-slate-500 text-[10px]">p=0.05 mark</span>
+                  <span class="${isDrift ? 'text-rose-400 font-bold' : 'text-slate-300'}">p = ${pVal.toFixed(4)}</span>
+                  <span class="text-slate-400 text-[10px]">p=0.05 mark</span>
                 </div>
                 <div class="w-full bg-dark-950 h-2.5 rounded-full relative overflow-hidden border border-slate-800">
                   <div class="absolute top-0 bottom-0 left-[5%] w-0.5 bg-rose-500 z-10"></div>
-                  <div class="h-full rounded-full ${isDrift ? 'bg-rose-500 shadow-sm shadow-rose-500' : 'bg-indigo-500'}" style="width: ${pValPct}%"></div>
+                  <div class="h-full rounded-full transition-all duration-300 ${isDrift ? 'bg-rose-500 shadow-sm shadow-rose-500' : 'bg-indigo-500'}" style="width: ${pValPct}%"></div>
                 </div>
               </div>
             </td>
             <td class="py-3 px-3.5 text-right font-sans">
               <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                isDrift ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                isDrift ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
               }">
                 ${isDrift ? 'DRIFT' : 'HEALTHY'}
               </span>
@@ -863,19 +895,19 @@
     function renderModelRegistry(models) {
       const tbody = document.getElementById('modelRegistryBody');
       if (!models || models.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-5 text-center text-slate-500 font-sans">No registered models found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 font-sans">No registered models found.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = models.map(m => `
         <tr class="${m.stage === 'Production' ? 'bg-indigo-950/30 font-semibold' : 'hover:bg-dark-850/30'}">
-          <td class="py-2.5 px-2.5 font-bold ${m.stage === 'Production' ? 'text-indigo-400' : 'text-slate-300'}">
+          <td class="py-2.5 px-3 font-bold ${m.stage === 'Production' ? 'text-indigo-400' : 'text-slate-300'}">
             ${m.version}
           </td>
-          <td class="py-2.5 px-2.5 text-slate-400">${m.model_type}</td>
-          <td class="py-2.5 px-2.5 text-emerald-400 font-bold">${(m.val_accuracy * 100).toFixed(1)}%</td>
-          <td class="py-2.5 px-2.5 text-slate-300">${m.val_f1.toFixed(3)}</td>
-          <td class="py-2.5 px-2.5">
+          <td class="py-2.5 px-3 text-slate-300">${m.model_type}</td>
+          <td class="py-2.5 px-3 text-emerald-400 font-bold font-mono">${(m.val_accuracy * 100).toFixed(1)}%</td>
+          <td class="py-2.5 px-3 text-slate-300 font-mono">${m.val_f1.toFixed(3)}</td>
+          <td class="py-2.5 px-3">
             <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
               m.stage === 'Production' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-dark-800 text-slate-400'
             }">
@@ -886,36 +918,43 @@
       `).join('');
     }
 
-    // Render Event Log Stream
+    // Render Event Log Stream with clear left border accents
     function renderEventLog(events) {
       const container = document.getElementById('eventLogContainer');
       if (!events || events.length === 0) {
-        container.innerHTML = `<div class="text-slate-500 text-center py-6">No events logged yet.</div>`;
+        container.innerHTML = `<div class="text-slate-400 text-center py-8">No events logged yet.</div>`;
         return;
       }
 
       container.innerHTML = events.map(e => {
         const timeStr = new Date(e.timestamp * 1000).toLocaleTimeString();
-        let badgeColor = 'bg-dark-800 text-slate-400 border-slate-700';
+        let borderAccent = 'border-l-4 border-l-slate-600';
+        let badgeColor = 'bg-dark-800 text-slate-300 border-slate-700';
 
         if (e.event_type.includes('PROMOTED') || e.event_type.includes('SWAP')) {
+          borderAccent = 'border-l-4 border-l-emerald-500';
           badgeColor = 'bg-emerald-950/70 text-emerald-300 border-emerald-800';
         } else if (e.event_type.includes('DRIFT')) {
+          borderAccent = 'border-l-4 border-l-rose-500';
           badgeColor = 'bg-rose-950/70 text-rose-300 border-rose-800';
         } else if (e.event_type.includes('RETRAIN')) {
+          borderAccent = 'border-l-4 border-l-amber-500';
           badgeColor = 'bg-amber-950/70 text-amber-300 border-amber-800';
+        } else if (e.event_type.includes('STREAM')) {
+          borderAccent = 'border-l-4 border-l-indigo-500';
+          badgeColor = 'bg-indigo-950/70 text-indigo-300 border-indigo-800';
         }
 
         return `
-          <div class="p-2.5 rounded-xl bg-dark-900/90 border border-slate-800 hover:border-slate-700 transition space-y-1">
+          <div class="p-3 rounded-xl bg-dark-900/90 border border-slate-800 hover:border-slate-700 transition space-y-1 ${borderAccent}">
             <div class="flex items-center justify-between text-[11px]">
               <span class="font-bold px-1.5 py-0.5 rounded border ${badgeColor} text-[10px]">
                 ${e.event_type}
               </span>
-              <span class="text-slate-500 font-mono text-[10px]">${timeStr}</span>
+              <span class="text-slate-400 font-mono text-[10px]">${timeStr}</span>
             </div>
-            <p class="font-semibold text-slate-200 text-xs">${e.title}</p>
-            ${e.details ? `<p class="text-[11px] text-slate-400 leading-normal">${e.details}</p>` : ''}
+            <p class="font-semibold text-slate-100 text-xs">${e.title}</p>
+            ${e.details ? `<p class="text-[11px] text-slate-400 leading-normal font-mono">${e.details}</p>` : ''}
           </div>
         `;
       }).join('');
@@ -936,7 +975,7 @@
         newAcc.textContent = `${comp.new_accuracy_pct}%`;
         
         const diff = comp.improvement_pct || (comp.new_accuracy_pct - comp.old_accuracy_pct);
-        gain.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%`;
+        gain.innerHTML = `<span class="inline-flex items-center space-x-1"><span>${diff >= 0 ? '▲ +' : '▼ '}${Math.abs(diff).toFixed(1)}%</span></span>`;
         gain.className = `font-display text-4xl font-black ${diff >= 0 ? 'text-emerald-400' : 'text-rose-400'} mt-2`;
         document.getElementById('compNewVersion').textContent = `${comp.new_version || 'Retrained'} Promoted`;
         document.getElementById('compOldVersion').textContent = `${comp.old_version || 'Baseline'} Champion`;
@@ -953,23 +992,29 @@
     function updateStreamButtonUI(isStreaming) {
       const btn = document.getElementById('btnStreamTraffic');
       const btnText = document.getElementById('btnStreamTrafficText');
+      const btnIcon = document.getElementById('btnStreamTrafficIcon');
       const stateText = document.getElementById('streamingStateText');
 
       if (isStreaming) {
-        btn.className = 'flex items-center justify-center space-x-2 px-4 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-rose-600/20';
+        btn.className = 'flex items-center justify-center space-x-2 px-4 py-3.5 bg-rose-600 hover:bg-rose-500 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-rose-600/20';
         btnText.textContent = 'Stop Traffic Stream';
-        stateText.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span><span class="text-emerald-400 font-semibold">Streaming Live Trades (5 req/s)</span>`;
+        btnIcon.innerHTML = `<i data-lucide="square" class="w-4 h-4"></i>`;
+        stateText.innerHTML = `<span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span><span class="text-emerald-400 font-semibold">Streaming Live Trades (5 req/s)</span>`;
       } else {
-        btn.className = 'flex items-center justify-center space-x-2 px-4 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-indigo-600/20';
+        btn.className = 'flex items-center justify-center space-x-2 px-4 py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-indigo-600/20';
         btnText.textContent = 'Stream Normal Traffic';
-        stateText.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span><span>Simulator Idle</span>`;
+        btnIcon.innerHTML = `<i data-lucide="radio" class="w-4 h-4"></i>`;
+        stateText.innerHTML = `<span class="h-2 w-2 rounded-full bg-slate-500"></span><span>Simulator Idle</span>`;
       }
+      lucide.createIcons();
     }
 
-    // Action Handlers
+    // Action Handlers with inline Spinner states
     async function toggleStreamTraffic() {
       const btn = document.getElementById('btnStreamTraffic');
+      const btnText = document.getElementById('btnStreamTrafficText');
       btn.disabled = true;
+      btnText.textContent = isStreamingTraffic ? 'Stopping...' : 'Starting...';
       try {
         if (isStreamingTraffic) {
           const res = await fetch(`${API_BASE}/simulate/stop`, { method: 'POST' });
@@ -989,8 +1034,10 @@
     async function injectDriftBatch() {
       const btn = document.getElementById('btnInjectDrift');
       const btnText = document.getElementById('btnInjectDriftText');
+      const btnIcon = document.getElementById('btnInjectDriftIcon');
       btn.disabled = true;
       btnText.textContent = 'Injecting Shift...';
+      btnIcon.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>`;
       try {
         const res = await fetch(`${API_BASE}/simulate/drift?batch_size=50`, { method: 'POST' });
         showFeedback('Injected 50 drifted trade orders! Watch KS p-values shift.');
@@ -999,6 +1046,8 @@
       } finally {
         btn.disabled = false;
         btnText.textContent = 'Inject Drifted Batch (50)';
+        btnIcon.innerHTML = `<i data-lucide="zap" class="w-4 h-4"></i>`;
+        lucide.createIcons();
         pollDashboardData();
       }
     }
@@ -1006,8 +1055,10 @@
     async function triggerManualRetrain() {
       const btn = document.getElementById('btnForceRetrain');
       const btnText = document.getElementById('btnForceRetrainText');
+      const btnIcon = document.getElementById('btnForceRetrainIcon');
       btn.disabled = true;
       btnText.textContent = 'Retraining Model...';
+      btnIcon.innerHTML = `<svg class="animate-spin h-4 w-4 text-cyan-400" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>`;
       try {
         const res = await fetch(`${API_BASE}/retrain/trigger`, { method: 'POST' });
         const data = await res.json();
@@ -1021,6 +1072,8 @@
       } finally {
         btn.disabled = false;
         btnText.textContent = 'Force Retraining Run';
+        btnIcon.innerHTML = `<i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i>`;
+        lucide.createIcons();
         pollDashboardData();
       }
     }
@@ -1028,7 +1081,9 @@
     async function resetPipeline() {
       if (!confirm('Reset the feature store rolling window and restore baseline model v1?')) return;
       const btn = document.getElementById('btnResetPipeline');
+      const btnText = document.getElementById('btnResetPipelineText');
       btn.disabled = true;
+      btnText.textContent = 'Resetting...';
       try {
         const res = await fetch(`${API_BASE}/pipeline/reset`, { method: 'POST' });
         showFeedback('Pipeline reset to baseline v1 state.');
@@ -1036,6 +1091,7 @@
         showFeedback('Reset request failed', true);
       } finally {
         btn.disabled = false;
+        btnText.textContent = 'Reset Pipeline (v1)';
         pollDashboardData();
       }
     }
