@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: driftguard-mlops
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt && python -m ml.train_baseline"
+    startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHONPATH
+        value: .
+      - key: PYTHON_VERSION
+        value: 3.10.13
+      - key: AUTO_RETRAIN_ENABLED
+        value: "true"
+      - key: WINDOW_SIZE
+        value: "100"
+      - key: P_VALUE_THRESHOLD
+        value: "0.05"
+      - key: MIN_FEATURES_DRIFTED
+        value: "3"
