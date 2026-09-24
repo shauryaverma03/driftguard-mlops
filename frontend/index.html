@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DriftGuard — Autonomous MLOps Drift Detection & Retraining Engine</title>
+  <title>DriftGuard MLOps Console</title>
   
-  <!-- Google Fonts: Inter, Outfit & JetBrains Mono -->
+  <!-- Fonts: Inter & JetBrains Mono for dense engineering data -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -21,33 +21,18 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-            display: ['Outfit', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', 'monospace'],
           },
           colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              400: '#818cf8',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            },
-            dark: {
-              950: '#060913',
-              900: '#0b1120',
-              850: '#10182c',
-              800: '#19233c',
-              750: '#202d4d',
-              700: '#2b3b64',
+            console: {
+              950: '#090d14',
+              900: '#0d131f',
+              850: '#111928',
+              800: '#182234',
+              700: '#233047',
+              border: '#1f2d42',
             }
-          },
-          boxShadow: {
-            'glow-cyan': '0 0 25px -4px rgba(6, 182, 212, 0.4)',
-            'glow-indigo': '0 0 25px -4px rgba(99, 102, 241, 0.4)',
-            'glow-rose': '0 0 25px -4px rgba(244, 63, 94, 0.45)',
-            'glow-emerald': '0 0 25px -4px rgba(16, 185, 129, 0.4)',
           }
         }
       }
@@ -55,304 +40,291 @@
   </script>
 
   <style>
-    @keyframes pulse-slow {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.8; transform: scale(1.015); }
+    /* Dense Console Layout Reset */
+    * {
+      box-sizing: border-box;
     }
-    .pulse-alert {
-      animation: pulse-slow 2s infinite ease-in-out;
+    body {
+      background-color: #090d14;
+      color: #e2e8f0;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     }
-    .glass-card {
-      background: rgba(11, 17, 32, 0.8);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+    .console-panel {
+      background-color: #0d131f;
+      border: 1px solid #1f2d42;
+      border-radius: 6px;
     }
     .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
     }
     .custom-scrollbar::-webkit-scrollbar-track {
-      background: #060913;
+      background: #090d14;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #202d4d;
-      border-radius: 4px;
+      background: #1f2d42;
+      border-radius: 2px;
     }
-    /* Number change flash highlight */
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+    /* Value flash animation */
     .flash-highlight {
-      animation: flash-pulse 0.6s ease-out;
+      animation: flash-pulse 0.6s cubic-bezier(0, 0, 0.2, 1);
     }
     @keyframes flash-pulse {
-      0% { color: #38bdf8; text-shadow: 0 0 12px rgba(56, 189, 248, 0.8); }
-      100% { color: inherit; text-shadow: none; }
+      0% { color: #38bdf8; background-color: rgba(56, 189, 248, 0.15); }
+      100% { color: inherit; background-color: transparent; }
     }
-    /* Tour Highlight Spotlight */
-    .tour-highlight {
-      position: relative;
-      z-index: 60 !important;
-      box-shadow: 0 0 0 9999px rgba(3, 7, 18, 0.85), 0 0 30px 4px rgba(99, 102, 241, 0.85) !important;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 1rem;
+    /* Node active pulse */
+    .node-active {
+      stroke: #38bdf8;
+      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6));
     }
   </style>
 </head>
-<body class="bg-dark-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white flex flex-col">
+<body class="min-h-screen flex flex-col font-sans text-xs antialiased selection:bg-cyan-900 selection:text-cyan-200">
 
-  <!-- ==================== TOP NAVIGATION HEADER ==================== -->
-  <header class="border-b border-slate-800/80 bg-dark-900/90 backdrop-blur-xl sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
-      
-      <!-- Brand Logo -->
-      <div class="flex items-center space-x-3.5 cursor-pointer select-none" onclick="switchTab('dashboard')">
-        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-brand-500 to-cyan-400 p-[1.5px] shadow-lg shadow-indigo-500/25">
-          <div class="h-full w-full bg-dark-900 rounded-[10px] flex items-center justify-center">
-            <i data-lucide="shield-alert" class="w-5 h-5 text-indigo-400"></i>
-          </div>
+  <!-- ==================== PERSISTENT TOP CONSOLE HEADER ==================== -->
+  <header class="bg-console-900 border-b border-console-border sticky top-0 z-40 px-4 py-2 flex items-center justify-between gap-4">
+    <!-- Brand & Cluster Info -->
+    <div class="flex items-center space-x-4">
+      <div class="flex items-center space-x-2">
+        <div class="h-6 w-6 rounded bg-cyan-950 border border-cyan-800/80 flex items-center justify-center text-cyan-400 font-mono font-bold text-xs">
+          DG
         </div>
-        <div>
-          <div class="flex items-center space-x-2">
-            <span class="font-display font-black text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">DriftGuard</span>
-            <span class="text-[10px] font-mono uppercase bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-bold">Autonomous MLOps</span>
-          </div>
-          <p class="text-[11px] text-slate-400 font-medium">Continuous Drift Detection & Zero-Downtime Hot-Swap</p>
+        <div class="flex items-baseline space-x-1.5">
+          <span class="font-mono font-bold text-sm tracking-tight text-white">DriftGuard</span>
+          <span class="text-[10px] font-mono text-slate-500">v1.0.4-prod</span>
         </div>
       </div>
 
-      <!-- Navigation Tab Switcher -->
-      <div class="flex items-center bg-dark-850 border border-slate-800 p-1 rounded-xl text-xs font-semibold shadow-inner">
-        <button id="tabBtnDashboard" onclick="switchTab('dashboard')" class="flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition">
-          <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>
-          <span>Live Operations</span>
-        </button>
-        <button id="tabBtnArchitecture" onclick="switchTab('architecture')" class="flex items-center space-x-1.5 px-4 py-1.5 rounded-lg text-slate-400 hover:text-white transition">
-          <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
-          <span>Architecture & Specs</span>
-        </button>
+      <div class="h-4 w-[1px] bg-console-border hidden sm:block"></div>
+
+      <!-- Live Pipeline State Indicator -->
+      <div class="flex items-center space-x-2">
+        <span class="text-[11px] font-mono uppercase text-slate-400">Drift State:</span>
+        <div id="headerDriftBadge" class="flex items-center space-x-1.5 px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-950/80 text-emerald-400 border border-emerald-800">
+          <span id="headerDriftDot" class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+          <span id="headerDriftText">HEALTHY</span>
+        </div>
       </div>
 
-      <!-- Header Actions: Tour Guide, Backend Status, Docs -->
-      <div class="flex items-center space-x-2.5">
-        <!-- Interactive Tour Guide Button -->
-        <button onclick="startInteractiveTour(true)" class="text-xs font-semibold flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 active:scale-95 border border-indigo-500/30 text-indigo-300 hover:text-white transition shadow-sm">
-          <i data-lucide="compass" class="w-3.5 h-3.5 text-indigo-400"></i>
-          <span>Interactive Tour</span>
-        </button>
+      <div class="h-4 w-[1px] bg-console-border hidden md:block"></div>
 
-        <!-- Backend Connection Indicator -->
-        <div id="connectionStatus" class="flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/80 text-emerald-300">
-          <span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
-          <span id="connectionText">Live :8000</span>
+      <!-- Active Model Info -->
+      <div class="hidden md:flex items-center space-x-2 font-mono text-[11px]">
+        <span class="text-slate-400">Serving:</span>
+        <span id="headerActiveModel" class="font-bold text-cyan-300">v1 (RandomForest)</span>
+        <span class="text-[10px] bg-emerald-900/40 text-emerald-300 border border-emerald-700/60 px-1 rounded">PROD</span>
+      </div>
+    </div>
+
+    <!-- Right Telemetry, Stream Status & Links -->
+    <div class="flex items-center space-x-3">
+      <!-- Requests & Retrains Live Strip -->
+      <div class="hidden lg:flex items-center space-x-4 font-mono text-[11px] bg-console-950 px-2.5 py-1 rounded border border-console-border">
+        <div class="flex items-center space-x-1.5">
+          <span class="text-slate-500">Processed:</span>
+          <span id="headerTotalReq" class="font-bold text-slate-200">0</span>
         </div>
+        <span class="text-slate-700">|</span>
+        <div class="flex items-center space-x-1.5">
+          <span class="text-slate-500">Auto-Retrains:</span>
+          <span id="headerTotalRetrains" class="font-bold text-amber-300">0</span>
+        </div>
+        <span class="text-slate-700">|</span>
+        <div class="flex items-center space-x-1.5">
+          <span class="text-slate-500">Stream:</span>
+          <span id="headerStreamStatus" class="text-slate-400 font-semibold">IDLE</span>
+        </div>
+      </div>
 
-        <a href="http://127.0.0.1:8000/metrics" target="_blank" class="hidden sm:flex text-xs font-medium items-center space-x-1 px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 active:scale-95 border border-slate-700/80 text-slate-300 transition">
-          <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
-          <span>/metrics</span>
+      <!-- Connection Pill -->
+      <div id="connectionStatus" class="flex items-center space-x-1.5 px-2 py-1 rounded text-[11px] font-mono bg-emerald-950/50 border border-emerald-800/80 text-emerald-300">
+        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+        <span id="connectionText">:8000 OK</span>
+      </div>
+
+      <!-- Console Linkouts -->
+      <div class="flex items-center space-x-1 font-mono text-[11px]">
+        <a href="http://127.0.0.1:8000/metrics" target="_blank" class="px-2 py-1 rounded bg-console-850 hover:bg-console-800 border border-console-border text-slate-300 transition" title="Raw Prometheus Metrics">
+          /metrics
         </a>
-
-        <a href="http://127.0.0.1:8000/docs" target="_blank" class="hidden sm:flex text-xs font-medium items-center space-x-1 px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 active:scale-95 border border-slate-700/80 text-slate-300 transition">
-          <i data-lucide="file-code" class="w-3.5 h-3.5 text-indigo-400"></i>
-          <span>API Docs</span>
+        <a href="http://127.0.0.1:8000/docs" target="_blank" class="px-2 py-1 rounded bg-console-850 hover:bg-console-800 border border-console-border text-slate-300 transition" title="OpenAPI / Swagger Docs">
+          /docs
         </a>
       </div>
-
     </div>
   </header>
 
+  <!-- ==================== MAIN CONSOLE WORKSPACE ==================== -->
+  <main class="flex-1 p-3.5 space-y-3 max-w-[1600px] w-full mx-auto">
 
-  <!-- ==================== HERO SHOWCASE BANNER ==================== -->
-  <section class="border-b border-slate-800/70 bg-gradient-to-b from-dark-900 via-dark-950 to-dark-950 py-7 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-      <div class="space-y-2.5 max-w-2xl">
-        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
-          <span class="h-2 w-2 rounded-full bg-cyan-400"></span>
-          <span>Problem Statement #27 MLOps Pipeline</span>
-        </div>
-        <h2 class="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
-          Automated Market Manipulation Drift Protection
-        </h2>
-        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-          DriftGuard continuously logs trade request feature vectors (<code class="text-cyan-300 font-mono text-xs bg-dark-850 px-1 py-0.5 rounded border border-slate-800">cancel_ratio</code>, <code class="text-cyan-300 font-mono text-xs bg-dark-850 px-1 py-0.5 rounded border border-slate-800">latency</code>, <code class="text-cyan-300 font-mono text-xs bg-dark-850 px-1 py-0.5 rounded border border-slate-800">z-score</code>, <code class="text-cyan-300 font-mono text-xs bg-dark-850 px-1 py-0.5 rounded border border-slate-800">frequency</code>), checks distribution shift via <strong>Kolmogorov-Smirnov statistical tests</strong>, validates retrained challenger models against baseline benchmarks, and promotes versions in MLflow with <strong>zero-downtime hot-swaps</strong>.
-        </p>
-      </div>
-
-      <!-- Quick Pipeline Highlights -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:w-auto">
-        <div class="glass-card rounded-xl p-3.5 text-center border-slate-800/80">
-          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Inference</div>
-          <div class="text-sm font-bold text-indigo-400 mt-1">FastAPI REST</div>
-          <div class="text-[11px] text-slate-400">&lt; 10ms Latency</div>
-        </div>
-        <div class="glass-card rounded-xl p-3.5 text-center border-slate-800/80">
-          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Drift Test</div>
-          <div class="text-sm font-bold text-cyan-400 mt-1">KS 2-Sample</div>
-          <div class="text-[11px] text-slate-400">p &lt; 0.05 Trigger</div>
-        </div>
-        <div class="glass-card rounded-xl p-3.5 text-center border-slate-800/80">
-          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tracking</div>
-          <div class="text-sm font-bold text-amber-400 mt-1">MLflow Registry</div>
-          <div class="text-[11px] text-slate-400">Auto-Staging</div>
-        </div>
-        <div class="glass-card rounded-xl p-3.5 text-center border-slate-800/80">
-          <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Deployment</div>
-          <div class="text-sm font-bold text-emerald-400 mt-1">Atomic Hot-Swap</div>
-          <div class="text-[11px] text-slate-400">Zero Restart</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ==================== MAIN CONTENT TABS ==================== -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
-
-    <!-- ==================== TAB 1: LIVE OPERATIONS DASHBOARD ==================== -->
-    <div id="viewDashboard" class="space-y-6">
-
-      <!-- 1. Key Metrics & Status Bar (Tour Step 1) -->
-      <div id="tourStep1" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <!-- Live Drift Status Primary Banner -->
-        <div id="driftBannerCard" class="glass-card rounded-2xl p-5 shadow-lg relative overflow-hidden transition-all duration-300 border border-emerald-500/30">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pipeline Drift State</span>
-            <i data-lucide="activity" class="w-4 h-4 text-slate-400"></i>
+    <!-- ==================== ROW 1: LIVE PIPELINE TOPOLOGY & OPERATIONAL CONTROLS ==================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+      
+      <!-- Live Pipeline DAG Architecture Map (7 Cols) -->
+      <div class="lg:col-span-8 console-panel p-3 flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-2 border-b border-console-border/80">
+          <div class="flex items-center space-x-2 font-mono text-[11px] font-semibold text-slate-300">
+            <i data-lucide="network" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>PIPELINE ARCHITECTURE TOPOLOGY & DATA FLOW</span>
           </div>
-          <div class="mt-3 flex items-center space-x-3">
-            <span id="driftStatusIndicator" class="h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500"></span>
-            <div id="driftStatusBadge" class="font-display text-2xl font-black text-emerald-400 tracking-wide">
-              HEALTHY
-            </div>
+          <div class="flex items-center space-x-3 text-[10px] font-mono text-slate-400">
+            <span class="flex items-center space-x-1"><span class="h-2 w-2 rounded-full bg-emerald-400"></span><span>Active Stage</span></span>
+            <span class="flex items-center space-x-1"><span class="h-2 w-2 rounded-full bg-rose-400"></span><span>Drift Threshold (p &lt; 0.05)</span></span>
           </div>
-          <p id="driftStatusDesc" class="mt-2 text-xs text-slate-300 font-medium leading-normal">
-            Features match training baseline (p &gt; 0.05)
-          </p>
         </div>
 
-        <!-- Active Production Model -->
-        <div class="glass-card rounded-2xl p-5 shadow-lg border border-slate-800/80">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Serving Model</span>
-            <i data-lucide="cpu" class="w-4 h-4 text-indigo-400"></i>
-          </div>
-          <div class="mt-3 flex items-baseline space-x-2">
-            <span id="activeModelVersion" class="font-display text-3xl font-black text-white">v1</span>
-            <span id="activeModelStage" class="text-xs font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded">Production</span>
-          </div>
-          <p id="activeModelType" class="mt-2 text-xs text-slate-300 font-medium">RandomForest (Zero Downtime)</p>
+        <!-- SVG Architecture Topology Diagram -->
+        <div class="py-2 overflow-x-auto custom-scrollbar">
+          <svg viewBox="0 0 740 100" class="w-full min-w-[700px] h-24 font-mono text-[10px] select-none">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="#334155" />
+              </marker>
+              <marker id="arrow-active" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="#06b6d4" />
+              </marker>
+            </defs>
+
+            <!-- Connections -->
+            <path d="M 115 50 L 155 50" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)" />
+            <path d="M 265 50 L 305 50" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)" />
+            <path d="M 415 50 L 455 50" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)" />
+            <path d="M 565 50 L 605 50" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)" />
+
+            <!-- Node 1: Ingestion -->
+            <g id="node-ingest" transform="translate(10, 20)">
+              <rect width="105" height="60" rx="4" fill="#111928" stroke="#1f2d42" stroke-width="1.2" />
+              <text x="52" y="24" fill="#94a3b8" text-anchor="middle" font-weight="600">INFERENCE</text>
+              <text x="52" y="40" fill="#38bdf8" text-anchor="middle" font-weight="bold">/predict</text>
+              <text x="52" y="52" fill="#64748b" text-anchor="middle" font-size="8.5">FastAPI &lt;10ms</text>
+            </g>
+
+            <!-- Node 2: SQLite Rolling Store -->
+            <g id="node-store" transform="translate(160, 20)">
+              <rect width="105" height="60" rx="4" fill="#111928" stroke="#1f2d42" stroke-width="1.2" />
+              <text x="52" y="24" fill="#94a3b8" text-anchor="middle" font-weight="600">ROLLING STORE</text>
+              <text x="52" y="40" fill="#f8fafc" text-anchor="middle" font-weight="bold">SQLite Window</text>
+              <text x="52" y="52" fill="#64748b" text-anchor="middle" font-size="8.5">N=100 Logs</text>
+            </g>
+
+            <!-- Node 3: KS Drift Engine -->
+            <g id="node-drift" transform="translate(310, 20)">
+              <rect id="node-drift-box" width="105" height="60" rx="4" fill="#111928" stroke="#1f2d42" stroke-width="1.2" />
+              <text x="52" y="24" fill="#94a3b8" text-anchor="middle" font-weight="600">DRIFT TEST</text>
+              <text x="52" y="40" fill="#a78bfa" text-anchor="middle" font-weight="bold">KS 2-Sample</text>
+              <text x="52" y="52" fill="#64748b" text-anchor="middle" font-size="8.5">scipy.stats</text>
+            </g>
+
+            <!-- Node 4: Retrain & Validation Gate -->
+            <g id="node-retrain" transform="translate(460, 20)">
+              <rect id="node-retrain-box" width="105" height="60" rx="4" fill="#111928" stroke="#1f2d42" stroke-width="1.2" />
+              <text x="52" y="24" fill="#94a3b8" text-anchor="middle" font-weight="600">AUTO-RETRAIN</text>
+              <text x="52" y="40" fill="#fbbf24" text-anchor="middle" font-weight="bold">Val-Gate</text>
+              <text x="52" y="52" fill="#64748b" text-anchor="middle" font-size="8.5">MLflow Tracked</text>
+            </g>
+
+            <!-- Node 5: Atomic Hot-Swap -->
+            <g id="node-hotswap" transform="translate(610, 20)">
+              <rect id="node-hotswap-box" width="105" height="60" rx="4" fill="#111928" stroke="#1f2d42" stroke-width="1.2" />
+              <text x="52" y="24" fill="#94a3b8" text-anchor="middle" font-weight="600">DEPLOYMENT</text>
+              <text x="52" y="40" fill="#34d399" text-anchor="middle" font-weight="bold">Hot-Swap</text>
+              <text x="52" y="52" fill="#64748b" text-anchor="middle" font-size="8.5">Zero Downtime</text>
+            </g>
+          </svg>
         </div>
 
-        <!-- Trade Requests Processed -->
-        <div class="glass-card rounded-2xl p-5 shadow-lg border border-slate-800/80">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Requests Processed</span>
-            <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
+        <!-- Pipeline Diagnostics Monospace Status Bar -->
+        <div class="pt-2 border-t border-console-border/80 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-slate-400">
+          <div class="flex items-center space-x-3">
+            <span>Window Size: <strong id="diagWindowSize" class="text-slate-200">100</strong></span>
+            <span>Threshold: <strong class="text-rose-400">p &lt; 0.05</strong></span>
+            <span>Min Features Drifted: <strong class="text-slate-200">3</strong></span>
           </div>
-          <div class="mt-3">
-            <span id="totalRequests" class="font-display text-3xl font-black text-white">0</span>
-          </div>
-          <p id="streamingStateText" class="mt-2 text-xs text-slate-300 font-medium flex items-center space-x-1.5">
-            <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
-            <span>Simulator Idle</span>
-          </p>
-        </div>
-
-        <!-- Retrain Cycles -->
-        <div class="glass-card rounded-2xl p-5 shadow-lg border border-slate-800/80">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Retrains Promoted</span>
-            <i data-lucide="refresh-cw" class="w-4 h-4 text-amber-400"></i>
-          </div>
-          <div class="mt-3 flex items-baseline space-x-2">
-            <span id="totalRetrains" class="font-display text-3xl font-black text-white">0</span>
-            <span class="text-xs text-slate-400 font-semibold">auto-swaps</span>
-          </div>
-          <p class="mt-2 text-xs text-slate-300 font-medium">Gated on held-out benchmark</p>
-        </div>
-      </div>
-
-
-      <!-- 2. Interactive Traffic Simulator & Pipeline Control (Tour Step 2) -->
-      <div id="tourStep2" class="glass-card rounded-2xl p-5 shadow-lg space-y-4 border border-slate-800/80">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
-          <div>
-            <h3 class="text-base font-display font-bold text-white flex items-center space-x-2">
-              <i data-lucide="play-circle" class="w-5 h-5 text-indigo-400"></i>
-              <span>Traffic Simulator & Real-Time Controls</span>
-            </h3>
-            <p class="text-xs text-slate-400 mt-0.5">Stream realistic synthetic market orders or inject a distribution shift batch to test live drift detection</p>
-          </div>
-          <div id="actionFeedback" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-dark-850 border border-slate-700 text-slate-200 hidden shadow-md">
+          <div id="actionFeedback" class="text-[10px] font-mono px-2 py-0.5 rounded bg-console-950 border border-console-border text-slate-300 hidden">
             Ready
           </div>
         </div>
+      </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <!-- Action 1: Stream Normal -->
-          <button id="btnStreamTraffic" onclick="toggleStreamTraffic()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-indigo-600/25 disabled:opacity-50 disabled:cursor-not-allowed">
-            <span id="btnStreamTrafficIcon"><i data-lucide="radio" class="w-4 h-4"></i></span>
-            <span id="btnStreamTrafficText">Stream Normal Traffic</span>
+      <!-- Console Operations & Traffic Control Strip (4 Cols) -->
+      <div class="lg:col-span-4 console-panel p-3 flex flex-col justify-between">
+        <div class="pb-2 border-b border-console-border/80 flex items-center justify-between">
+          <div class="flex items-center space-x-2 font-mono text-[11px] font-semibold text-slate-300">
+            <i data-lucide="terminal" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>OPERATIONAL ACTION CONTROLS</span>
+          </div>
+          <span class="text-[10px] font-mono text-slate-500">REST API</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 my-2.5">
+          <!-- Button 1: Stream Traffic -->
+          <button id="btnStreamTraffic" onclick="toggleStreamTraffic()" class="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded bg-console-850 hover:bg-console-800 active:bg-console-700 border border-slate-700 text-slate-200 font-mono text-[11px] font-semibold transition disabled:opacity-50">
+            <span id="btnStreamTrafficIcon"><i data-lucide="play" class="w-3.5 h-3.5 text-cyan-400"></i></span>
+            <span id="btnStreamTrafficText">Stream Traffic</span>
           </button>
 
-          <!-- Action 2: Inject Drift Batch -->
-          <button id="btnInjectDrift" onclick="injectDriftBatch()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-600 hover:brightness-110 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-rose-600/25 disabled:opacity-50 disabled:cursor-not-allowed">
-            <span id="btnInjectDriftIcon"><i data-lucide="zap" class="w-4 h-4"></i></span>
-            <span id="btnInjectDriftText">Inject Drifted Batch (50)</span>
+          <!-- Button 2: Inject Drift Batch -->
+          <button id="btnInjectDrift" onclick="injectDriftBatch()" class="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded bg-rose-950/40 hover:bg-rose-900/50 active:bg-rose-950 border border-rose-800/80 text-rose-300 font-mono text-[11px] font-semibold transition disabled:opacity-50">
+            <span id="btnInjectDriftIcon"><i data-lucide="zap" class="w-3.5 h-3.5 text-rose-400"></i></span>
+            <span id="btnInjectDriftText">Inject Drift (50)</span>
           </button>
 
-          <!-- Action 3: Force Retrain -->
-          <button id="btnForceRetrain" onclick="triggerManualRetrain()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-dark-850 hover:bg-dark-750 active:scale-[0.98] text-white border border-slate-700 font-semibold text-sm rounded-xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-            <span id="btnForceRetrainIcon"><i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i></span>
-            <span id="btnForceRetrainText">Force Retraining Run</span>
+          <!-- Button 3: Force Retrain -->
+          <button id="btnForceRetrain" onclick="triggerManualRetrain()" class="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded bg-amber-950/30 hover:bg-amber-900/40 active:bg-amber-950 border border-amber-800/80 text-amber-300 font-mono text-[11px] font-semibold transition disabled:opacity-50">
+            <span id="btnForceRetrainIcon"><i data-lucide="cpu" class="w-3.5 h-3.5 text-amber-400"></i></span>
+            <span id="btnForceRetrainText">Force Retrain</span>
           </button>
 
-          <!-- Action 4: Reset Pipeline -->
-          <button id="btnResetPipeline" onclick="resetPipeline()" class="flex items-center justify-center space-x-2 px-4 py-3.5 bg-dark-850 hover:bg-rose-950/40 text-slate-300 hover:text-rose-300 border border-slate-700/80 hover:border-rose-800/60 active:scale-[0.98] font-semibold text-sm rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed">
-            <span id="btnResetPipelineIcon"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></span>
-            <span id="btnResetPipelineText">Reset Pipeline (v1)</span>
+          <!-- Button 4: Reset Pipeline -->
+          <button id="btnResetPipeline" onclick="resetPipeline()" class="flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded bg-console-850 hover:bg-rose-950/30 active:bg-console-950 border border-slate-700 hover:border-rose-900/60 text-slate-400 hover:text-rose-300 font-mono text-[11px] font-semibold transition disabled:opacity-50">
+            <span id="btnResetPipelineIcon"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-slate-400"></i></span>
+            <span id="btnResetPipelineText">Reset Window</span>
           </button>
+        </div>
+
+        <div class="pt-2 border-t border-console-border/80 flex items-center justify-between text-[10px] font-mono text-slate-400">
+          <span>Auto-Retrain Daemon: <strong class="text-emerald-400">ENABLED</strong></span>
+          <span>Sample Rate: <strong>5 req/s</strong></span>
         </div>
       </div>
 
+    </div>
 
-      <!-- 3. KS-Test Drift Radar & Feature Analysis (Tour Step 3) -->
-      <div id="tourStep3" class="glass-card rounded-2xl p-5 shadow-lg space-y-4 border border-slate-800/80">
-        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
-          <div>
-            <h3 class="text-base font-display font-bold text-white flex items-center space-x-2">
-              <i data-lucide="bar-chart-3" class="w-5 h-5 text-cyan-400"></i>
-              <span>Kolmogorov-Smirnov (KS) Feature Drift Analysis</span>
-            </h3>
-            <p class="text-xs text-slate-400 mt-0.5">Two-sample Kolmogorov-Smirnov test (<code class="font-mono text-indigo-300">scipy.stats.ks_2samp</code>) comparing rolling window against baseline distribution</p>
+    <!-- ==================== ROW 2: STATISTICAL KS DRIFT RADAR & BENCHMARK GATE ==================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+      
+      <!-- KS-Test Distribution Shift Table (8 Cols) -->
+      <div class="lg:col-span-8 console-panel p-3">
+        <div class="flex items-center justify-between pb-2 border-b border-console-border/80 mb-2">
+          <div class="flex items-center space-x-2 font-mono text-[11px] font-semibold text-slate-300">
+            <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>KOLMOGOROV-SMIRNOV FEATURE DRIFT ANALYSIS (scipy.stats.ks_2samp)</span>
           </div>
-          <div class="flex items-center space-x-4 text-xs font-medium">
-            <div class="flex items-center space-x-1.5 text-slate-300">
-              <span class="inline-block w-3.5 h-1.5 bg-rose-500 rounded-sm"></span>
-              <span>Significance Threshold: <strong class="font-mono text-rose-400 font-bold">p &lt; 0.05</strong></span>
-            </div>
-            <div class="text-slate-300 bg-dark-850 px-3 py-1.5 rounded-lg border border-slate-800 font-medium">
-              Rolling Window: <span id="currentWindowSamples" class="font-mono text-cyan-400 font-bold">0</span> / <span id="maxWindowSize" class="font-mono text-white">100</span> samples
-            </div>
+          <div class="font-mono text-[10px] text-slate-400">
+            Window Fill: <span id="currentWindowSamples" class="text-cyan-400 font-bold">0</span> / <span id="maxWindowSize" class="text-slate-200">100</span>
           </div>
         </div>
 
-        <!-- Dynamic KS Feature Table & Visual Progress Bars -->
         <div class="overflow-x-auto custom-scrollbar">
-          <table class="w-full text-left text-sm min-w-[680px]">
+          <table class="w-full text-left font-mono text-[11px] min-w-[620px]">
             <thead>
-              <tr class="text-[11px] font-semibold uppercase tracking-wider text-slate-300 border-b border-slate-800 bg-dark-850/80">
-                <th class="py-3 px-3.5">Feature Name</th>
-                <th class="py-3 px-3.5">Baseline Mean</th>
-                <th class="py-3 px-3.5">Window Mean</th>
-                <th class="py-3 px-3.5">KS Statistic</th>
-                <th class="py-3 px-3.5 w-64">p-value Distribution (p = 0.05 mark)</th>
-                <th class="py-3 px-3.5 text-right">Status</th>
+              <tr class="text-[10px] uppercase text-slate-400 border-b border-console-border bg-console-950">
+                <th class="py-2 px-2.5">Feature</th>
+                <th class="py-2 px-2.5">Baseline Mean</th>
+                <th class="py-2 px-2.5">Window Mean</th>
+                <th class="py-2 px-2.5">KS Stat</th>
+                <th class="py-2 px-2.5 w-48">p-value Distribution (p &lt; 0.05)</th>
+                <th class="py-2 px-2.5 text-right">Status</th>
               </tr>
             </thead>
-            <tbody id="driftTableBody" class="divide-y divide-slate-800/50 font-mono text-xs">
+            <tbody id="driftTableBody" class="divide-y divide-console-border/60">
               <tr>
-                <td colspan="6" class="py-8 text-center text-slate-400 font-sans">
-                  Accumulating market trade samples in rolling window...
+                <td colspan="6" class="py-6 text-center text-slate-500 font-sans">
+                  Accumulating feature vectors for two-sample KS statistical evaluation...
                 </td>
               </tr>
             </tbody>
@@ -360,445 +332,183 @@
         </div>
       </div>
 
-
-      <!-- 4. Before & After Retraining Comparison (Tour Step 4) -->
-      <div id="tourStep4" class="glass-card rounded-2xl p-5 shadow-lg space-y-4 border border-slate-800/80">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
-          <div>
-            <h3 class="text-base font-display font-bold text-white flex items-center space-x-2">
-              <i data-lucide="git-compare" class="w-5 h-5 text-emerald-400"></i>
-              <span>Retraining Benchmark Comparison (Held-Out Drifted Batch)</span>
-            </h3>
-            <p class="text-xs text-slate-400 mt-0.5">Real validation gate performance comparison between the prior champion and the newly retrained challenger model</p>
-          </div>
-          <span id="comparisonBadge" class="text-xs font-semibold px-3 py-1 rounded-full bg-dark-850 text-slate-300 border border-slate-700">
-            Awaiting First Retrain
-          </span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- Prior Model Accuracy -->
-          <div class="bg-dark-900/90 border border-slate-800 rounded-xl p-5 text-center">
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Prior Champion Accuracy</span>
-            <div id="compOldAccuracy" class="font-display text-4xl font-black text-slate-200 mt-2">
-              --%
+      <!-- Before vs After Retraining Benchmark Validation Gate (4 Cols) -->
+      <div class="lg:col-span-4 console-panel p-3 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between pb-2 border-b border-console-border/80 mb-2.5">
+            <div class="flex items-center space-x-2 font-mono text-[11px] font-semibold text-slate-300">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>VALIDATION GATE BENCHMARK</span>
             </div>
-            <span id="compOldVersion" class="text-xs text-slate-400 mt-1.5 block">Baseline Model</span>
+            <span id="comparisonBadge" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-console-950 text-slate-400 border border-console-border">
+              Awaiting Retrain
+            </span>
           </div>
 
-          <!-- Retrained Model Accuracy -->
-          <div class="bg-dark-900/90 border border-emerald-800/50 rounded-xl p-5 text-center relative overflow-hidden shadow-sm">
-            <div class="absolute top-0 right-0 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-bl">PROMOTED</div>
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Retrained Challenger Accuracy</span>
-            <div id="compNewAccuracy" class="font-display text-4xl font-black text-emerald-400 mt-2">
-              --%
+          <p class="text-[11px] text-slate-400 font-sans mb-3">
+            Challenger model benchmark evaluation on held-out drifted market test set before MLflow production promotion:
+          </p>
+
+          <!-- Accuracy Split -->
+          <div class="grid grid-cols-2 gap-2 font-mono">
+            <div class="bg-console-950 p-2.5 rounded border border-console-border">
+              <div class="text-[10px] text-slate-500 uppercase">Prior Champion</div>
+              <div id="compOldAccuracy" class="text-2xl font-bold text-slate-300 mt-1">--%</div>
+              <div id="compOldVersion" class="text-[10px] text-slate-500 mt-0.5">Baseline v1</div>
             </div>
-            <span id="compNewVersion" class="text-xs text-emerald-300/90 mt-1.5 block font-medium">Challenger Hot-Swapped</span>
-          </div>
 
-          <!-- Net Gain -->
-          <div class="bg-dark-900/90 border border-slate-800 rounded-xl p-5 text-center">
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Adaptation Recovery</span>
-            <div id="compGain" class="font-display text-4xl font-black text-cyan-400 mt-2">
-              --%
+            <div class="bg-console-950 p-2.5 rounded border border-emerald-900/60 relative">
+              <div class="text-[10px] text-emerald-400 uppercase font-semibold">Challenger Acc</div>
+              <div id="compNewAccuracy" class="text-2xl font-bold text-emerald-400 mt-1">--%</div>
+              <div id="compNewVersion" class="text-[10px] text-emerald-500 mt-0.5">Retrained Model</div>
             </div>
-            <span class="text-xs text-slate-400 mt-1.5 block">Drift Adaptation Metric</span>
-          </div>
-        </div>
-      </div>
-
-
-      <!-- 5. Bottom Split: Model Registry & Pipeline Audit Event Log (Tour Step 5) -->
-      <div id="tourStep5" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        <!-- Model Version Registry -->
-        <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col border border-slate-800/80">
-          <div class="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
-            <h3 class="text-base font-display font-bold text-white flex items-center space-x-2">
-              <i data-lucide="database" class="w-5 h-5 text-indigo-400"></i>
-              <span>MLflow Model Registry</span>
-            </h3>
-            <span class="text-xs text-slate-400 font-medium">Auto-versioned</span>
-          </div>
-          <div class="overflow-x-auto custom-scrollbar flex-1">
-            <table class="w-full text-left text-xs min-w-[420px]">
-              <thead>
-                <tr class="text-[11px] font-semibold uppercase tracking-wider text-slate-300 border-b border-slate-800 bg-dark-850/80">
-                  <th class="py-2.5 px-3">Version</th>
-                  <th class="py-2.5 px-3">Algorithm</th>
-                  <th class="py-2.5 px-3">Val Acc</th>
-                  <th class="py-2.5 px-3">Val F1</th>
-                  <th class="py-2.5 px-3">Stage</th>
-                </tr>
-              </thead>
-              <tbody id="modelRegistryBody" class="divide-y divide-slate-800/50 font-mono">
-                <tr>
-                  <td colspan="5" class="py-6 text-center text-slate-400 font-sans">Loading registered models...</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
 
-        <!-- Pipeline Audit Event Log Stream -->
-        <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col border border-slate-800/80">
-          <div class="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
-            <h3 class="text-base font-display font-bold text-white flex items-center space-x-2">
-              <i data-lucide="clock" class="w-5 h-5 text-cyan-400"></i>
-              <span>Pipeline Audit Timeline</span>
-            </h3>
-            <span class="text-xs text-slate-400 font-medium">Real-time Feed</span>
-          </div>
-          <div id="eventLogContainer" class="space-y-2.5 max-h-80 overflow-y-auto pr-1 custom-scrollbar flex-1 text-xs">
-            <div class="text-slate-400 text-center py-8">Waiting for pipeline events...</div>
-          </div>
+        <!-- Net Gain Bar -->
+        <div class="mt-3 pt-2.5 border-t border-console-border/80 flex items-center justify-between font-mono">
+          <span class="text-[11px] text-slate-400">Drift Adaptation Recovery:</span>
+          <span id="compGain" class="text-sm font-bold text-cyan-400">--%</span>
         </div>
-
       </div>
 
     </div>
 
-
-    <!-- ==================== TAB 2: SYSTEM ARCHITECTURE & SPECS ==================== -->
-    <div id="viewArchitecture" class="space-y-6 hidden">
-      <div class="glass-card rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 border border-slate-800/80">
-        <div class="border-b border-slate-800 pb-4">
-          <h2 class="text-xl sm:text-2xl font-display font-black text-white">System Architecture & Pipeline Flow</h2>
-          <p class="text-xs sm:text-sm text-slate-300 mt-1">Autonomous MLOps Lifecycle for Continuous Market Manipulation Detection</p>
+    <!-- ==================== ROW 3: MLFLOW MODEL REGISTRY & AUDIT EVENT CONSOLE ==================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+      
+      <!-- MLflow Model Registry Table (5 Cols) -->
+      <div class="lg:col-span-5 console-panel p-3">
+        <div class="flex items-center justify-between pb-2 border-b border-console-border/80 mb-2">
+          <div class="flex items-center space-x-2 font-mono text-[11px] font-semibold text-slate-300">
+            <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span>MLFLOW MODEL REGISTRY & STAGES</span>
+          </div>
+          <a href="http://127.0.0.1:5001" target="_blank" class="text-[10px] font-mono text-cyan-400 hover:underline flex items-center space-x-1">
+            <span>MLflow:5001</span>
+            <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+          </a>
         </div>
 
-        <!-- Architecture Flow Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          
-          <div class="bg-dark-900 border border-slate-800 rounded-xl p-4 space-y-2">
-            <div class="h-8 w-8 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold font-mono">1</div>
-            <h4 class="font-bold text-white text-sm">Feature Ingestion & Serving</h4>
-            <p class="text-xs text-slate-300 leading-relaxed">
-              FastAPI exposes <code class="text-cyan-300 font-mono">/predict</code> for scoring trades across 5 features. Incoming features and predictions are saved to the rolling SQLite window store.
-            </p>
-          </div>
-
-          <div class="bg-dark-900 border border-slate-800 rounded-xl p-4 space-y-2">
-            <div class="h-8 w-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold font-mono">2</div>
-            <h4 class="font-bold text-white text-sm">Continuous KS-Drift Engine</h4>
-            <p class="text-xs text-slate-300 leading-relaxed">
-              Computes <code class="text-cyan-300 font-mono">scipy.stats.ks_2samp</code> per feature against the baseline distribution. Flags drift when <code class="text-rose-400 font-mono">p &lt; 0.05</code> on &ge; 3 features.
-            </p>
-          </div>
-
-          <div class="bg-dark-900 border border-slate-800 rounded-xl p-4 space-y-2">
-            <div class="h-8 w-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold font-mono">3</div>
-            <h4 class="font-bold text-white text-sm">Validation-Gated Retraining</h4>
-            <p class="text-xs text-slate-300 leading-relaxed">
-              Auto-triggers challenger retraining. Gated against baseline validation and drifted test benchmarks before registering and staging in MLflow.
-            </p>
-          </div>
-
-          <div class="bg-dark-900 border border-slate-800 rounded-xl p-4 space-y-2">
-            <div class="h-8 w-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold font-mono">4</div>
-            <h4 class="font-bold text-white text-sm">Zero-Downtime Hot-Swap</h4>
-            <p class="text-xs text-slate-300 leading-relaxed">
-              Thread-safe model manager atomically swaps the active serving pointer in memory with zero downtime and emits Prometheus metrics on <code class="text-cyan-300 font-mono">/metrics</code>.
-            </p>
-          </div>
-        </div>
-
-        <!-- Features Monitored Table -->
-        <div class="pt-4 border-t border-slate-800">
-          <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3">Market Features Monitored</h3>
-          <div class="overflow-x-auto custom-scrollbar">
-            <table class="w-full text-left text-xs font-mono min-w-[640px]">
-              <thead class="bg-dark-850/80 text-slate-300 border-b border-slate-800 font-semibold">
-                <tr>
-                  <th class="py-2.5 px-3">Feature Key</th>
-                  <th class="py-2.5 px-3">Domain Meaning</th>
-                  <th class="py-2.5 px-3">Normal Range</th>
-                  <th class="py-2.5 px-3">Manipulation Signature</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-800/60 text-slate-300">
-                <tr>
-                  <td class="py-2.5 px-3 text-cyan-300 font-bold">cancel_ratio</td>
-                  <td class="py-2.5 px-3 font-sans">Ratio of canceled orders to total placed orders</td>
-                  <td class="py-2.5 px-3">0.05 - 0.40</td>
-                  <td class="py-2.5 px-3 text-rose-300 font-sans">High (0.80 - 0.99) in Spoofing / Layering</td>
-                </tr>
-                <tr>
-                  <td class="py-2.5 px-3 text-cyan-300 font-bold">order_to_cancel_latency_ms</td>
-                  <td class="py-2.5 px-3 font-sans">Time between order placement and cancellation</td>
-                  <td class="py-2.5 px-3">500ms - 4000ms</td>
-                  <td class="py-2.5 px-3 text-rose-300 font-sans">Sub-50ms rapid cancellation bursts</td>
-                </tr>
-                <tr>
-                  <td class="py-2.5 px-3 text-cyan-300 font-bold">order_size_zscore</td>
-                  <td class="py-2.5 px-3 font-sans">Normalized order volume deviation from average</td>
-                  <td class="py-2.5 px-3">-1.5 to +1.5</td>
-                  <td class="py-2.5 px-3 text-rose-300 font-sans">Abnormal size spikes (+3.0 to +9.0)</td>
-                </tr>
-                <tr>
-                  <td class="py-2.5 px-3 text-cyan-300 font-bold">order_frequency</td>
-                  <td class="py-2.5 px-3 font-sans">Orders submitted per minute</td>
-                  <td class="py-2.5 px-3">1 - 30 req/min</td>
-                  <td class="py-2.5 px-3 text-rose-300 font-sans">High-frequency spam (80 - 250 req/min)</td>
-                </tr>
-                <tr>
-                  <td class="py-2.5 px-3 text-cyan-300 font-bold">time_between_orders_ms</td>
-                  <td class="py-2.5 px-3 font-sans">Inter-arrival latency between consecutive orders</td>
-                  <td class="py-2.5 px-3">800ms - 5000ms</td>
-                  <td class="py-2.5 px-3 text-rose-300 font-sans">Microsecond inter-arrival churn</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left font-mono text-[11px] min-w-[360px]">
+            <thead>
+              <tr class="text-[10px] uppercase text-slate-400 border-b border-console-border bg-console-950">
+                <th class="py-1.5 px-2">Version</th>
+                <th class="py-1.5 px-2">Algorithm</th>
+                <th class="py-1.5 px-2">Val Acc</th>
+                <th class="py-1.5 px-2">Val F1</th>
+                <th class="py-1.5 px-2 text-right">Stage</th>
+              </tr>
+            </thead>
+            <tbody id="modelRegistryBody" class="divide-y divide-console-border/60">
+              <tr>
+                <td colspan="5" class="py-6 text-center text-slate-500 font-sans">Querying local model registry...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
+
+      <!-- Pipeline Audit Event Log Stream (7 Cols) -->
+      <div class="lg:col-span-7 console-panel p-3 flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-2 border-b border-console-border/80 mb-2">
+          <div class="flex items-center space-x-2 font-mono text-[11px] font-semibold text-slate-300">
+            <i data-lucide="terminal-square" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>PIPELINE AUDIT EVENT STREAM (SQLite)</span>
+          </div>
+          <span class="text-[10px] font-mono text-slate-500">Live Polling (2s)</span>
+        </div>
+
+        <div id="eventLogContainer" class="space-y-1.5 max-h-56 overflow-y-auto pr-1 custom-scrollbar font-mono text-[11px]">
+          <div class="text-slate-500 text-center py-6 font-sans">Awaiting pipeline audit entries...</div>
+        </div>
+      </div>
+
     </div>
 
   </main>
 
-
-  <!-- ==================== INTERACTIVE TOUR MODAL TOOLTIP ==================== -->
-  <div id="tourModal" class="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 left-4 sm:left-auto z-[70] max-w-md w-full bg-dark-900/95 border-2 border-indigo-500/70 rounded-2xl p-5 shadow-2xl backdrop-blur-2xl hidden transform transition-all duration-300">
-    <div class="flex items-start justify-between">
-      <div class="flex items-center space-x-2">
-        <div class="h-6 w-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs font-bold font-mono shadow-sm">
-          <span id="tourStepNumber">1</span>
-        </div>
-        <h4 id="tourTitle" class="text-sm font-bold text-white font-display">Drift State & Metrics</h4>
-      </div>
-      <button onclick="skipTour()" class="text-slate-400 hover:text-white p-1 transition" title="Close Tour">
-        <i data-lucide="x" class="w-4 h-4"></i>
-      </button>
-    </div>
-
-    <p id="tourContent" class="text-xs text-slate-300 mt-2.5 leading-relaxed font-normal">
-      This primary badge monitors overall system health. It turns red with a pulsating alert as soon as the Kolmogorov-Smirnov statistical test detects distribution drift.
-    </p>
-
-    <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-800">
-      <span id="tourProgress" class="text-[11px] font-mono text-indigo-400 font-semibold">Step 1 of 5</span>
-      <div class="flex items-center space-x-2">
-        <button id="tourPrevBtn" onclick="prevTourStep()" class="px-3 py-1.5 text-xs rounded-lg bg-dark-800 text-slate-300 hover:bg-dark-750 active:scale-95 disabled:opacity-40 transition font-medium">
-          Back
-        </button>
-        <button id="tourNextBtn" onclick="nextTourStep()" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 active:scale-95 shadow-sm shadow-indigo-600/30 transition">
-          Next
-        </button>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- ==================== JAVASCRIPT APPLICATION LOGIC ==================== -->
+  <!-- ==================== JAVASCRIPT CONSOLE LOGIC ==================== -->
   <script>
     const API_BASE = 'http://127.0.0.1:8000';
     let isStreamingTraffic = false;
 
-    // Cache previous values for visual flash updates on poll change
+    // Track previous values to trigger flash animations
     let prevTotalRequests = null;
     let prevTotalRetrains = null;
     let prevActiveVersion = null;
 
-    // --- Cookie & LocalStorage Session Helpers ---
-    function setCookie(name, value, days = 365) {
-      const d = new Date();
-      d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-      document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/;SameSite=Lax`;
-      try { localStorage.setItem(name, value); } catch (e) {}
-    }
-
-    function getCookie(name) {
-      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-      if (match) return match[2];
-      try { return localStorage.getItem(name); } catch (e) { return null; }
-    }
-
-    // Helper: Flash highlight an element on value change
     function triggerFlash(elementId) {
       const el = document.getElementById(elementId);
       if (!el) return;
       el.classList.remove('flash-highlight');
-      void el.offsetWidth; // Force reflow
+      void el.offsetWidth;
       el.classList.add('flash-highlight');
     }
 
-    // --- Tab Switcher ---
-    function switchTab(tabName) {
-      const dash = document.getElementById('viewDashboard');
-      const arch = document.getElementById('viewArchitecture');
-      const btnDash = document.getElementById('tabBtnDashboard');
-      const btnArch = document.getElementById('tabBtnArchitecture');
-
-      if (tabName === 'architecture') {
-        dash.classList.add('hidden');
-        arch.classList.remove('hidden');
-        btnArch.className = 'flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition';
-        btnDash.className = 'flex items-center space-x-1.5 px-4 py-1.5 rounded-lg text-slate-400 hover:text-white transition';
-      } else {
-        arch.classList.add('hidden');
-        dash.classList.remove('hidden');
-        btnDash.className = 'flex items-center space-x-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition';
-        btnArch.className = 'flex items-center space-x-1.5 px-4 py-1.5 rounded-lg text-slate-400 hover:text-white transition';
-      }
-      lucide.createIcons();
-    }
-
-    // --- Interactive Onboarding Tour Steps ---
-    const TOUR_STEPS = [
-      {
-        targetId: 'tourStep1',
-        title: 'Real-Time Health & Drift Badge',
-        content: 'This top banner displays active pipeline state. When feature distributions shift, it instantly alerts DRIFT DETECTED and shows the active hot-swapped model version.'
-      },
-      {
-        targetId: 'tourStep2',
-        title: 'Live Traffic Simulator Controls',
-        content: 'Use "Stream Normal Traffic" to simulate standard market order flow, or click "Inject Drifted Batch (50)" to simulate an adversarial market regime shift and trigger automated retraining.'
-      },
-      {
-        targetId: 'tourStep3',
-        title: 'Kolmogorov-Smirnov Drift Radar',
-        content: 'Evaluates scipy.stats.ks_2samp against baseline training distributions. Features with p < 0.05 breach the threshold (vertical red line) and highlight in red.'
-      },
-      {
-        targetId: 'tourStep4',
-        title: 'Validation Gate & Benchmark Recovery',
-        content: 'Displays side-by-side accuracy gains between the previous champion and the newly retrained challenger model on held-out drifted market benchmarks.'
-      },
-      {
-        targetId: 'tourStep5',
-        title: 'MLflow Model Registry & Audit Log',
-        content: 'Tracks every model version promoted to Production, along with real-time audit logs of drift alerts, retrain triggers, and zero-downtime hot-swaps.'
-      }
-    ];
-
-    let currentTourIndex = 0;
-
-    function startInteractiveTour(force = false) {
-      if (!force && getCookie('driftguard_tour_completed')) {
-        return; // Only show once per user unless explicitly clicked
-      }
-      switchTab('dashboard');
-      currentTourIndex = 0;
-      renderTourStep();
-    }
-
-    function renderTourStep() {
-      TOUR_STEPS.forEach(step => {
-        const el = document.getElementById(step.targetId);
-        if (el) el.classList.remove('tour-highlight');
-      });
-
-      const step = TOUR_STEPS[currentTourIndex];
-      const targetEl = document.getElementById(step.targetId);
-      if (targetEl) {
-        targetEl.classList.add('tour-highlight');
-        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-
-      const modal = document.getElementById('tourModal');
-      document.getElementById('tourStepNumber').textContent = currentTourIndex + 1;
-      document.getElementById('tourTitle').textContent = step.title;
-      document.getElementById('tourContent').textContent = step.content;
-      document.getElementById('tourProgress').textContent = `Step ${currentTourIndex + 1} of ${TOUR_STEPS.length}`;
-
-      document.getElementById('tourPrevBtn').disabled = currentTourIndex === 0;
-      document.getElementById('tourNextBtn').textContent = (currentTourIndex === TOUR_STEPS.length - 1) ? 'Finish Tour' : 'Next';
-
-      modal.classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function nextTourStep() {
-      if (currentTourIndex < TOUR_STEPS.length - 1) {
-        currentTourIndex++;
-        renderTourStep();
-      } else {
-        skipTour();
-      }
-    }
-
-    function prevTourStep() {
-      if (currentTourIndex > 0) {
-        currentTourIndex--;
-        renderTourStep();
-      }
-    }
-
-    function skipTour() {
-      TOUR_STEPS.forEach(step => {
-        const el = document.getElementById(step.targetId);
-        if (el) el.classList.remove('tour-highlight');
-      });
-      document.getElementById('tourModal').classList.add('hidden');
-      setCookie('driftguard_tour_completed', 'true', 365);
-    }
-
-    // --- Toast Feedback Helper ---
     function showFeedback(text, isError = false) {
       const el = document.getElementById('actionFeedback');
       el.textContent = text;
-      el.className = `text-xs font-semibold px-3 py-1.5 rounded-lg border shadow-lg ${
-        isError ? 'bg-rose-950/90 border-rose-800 text-rose-200' : 'bg-emerald-950/90 border-emerald-800 text-emerald-200'
+      el.className = `text-[10px] font-mono px-2 py-0.5 rounded border ${
+        isError ? 'bg-rose-950 text-rose-300 border-rose-800' : 'bg-emerald-950 text-emerald-300 border-emerald-800'
       }`;
       el.classList.remove('hidden');
-      setTimeout(() => { el.classList.add('hidden'); }, 4000);
+      setTimeout(() => { el.classList.add('hidden'); }, 3500);
     }
 
-    // --- 2-Second Polling Logic ---
+    // --- Core 2-Second Polling Routine ---
     async function pollDashboardData() {
       try {
-        // Fetch Health
+        // 1. Health Status
         const healthRes = await fetch(`${API_BASE}/health`);
-        if (!healthRes.ok) throw new Error('Backend health failed');
+        if (!healthRes.ok) throw new Error('Health check failed');
         const health = await healthRes.json();
 
-        document.getElementById('connectionStatus').className = 'flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/80 text-emerald-300';
-        document.getElementById('connectionText').textContent = 'Live :8000';
+        document.getElementById('connectionStatus').className = 'flex items-center space-x-1.5 px-2 py-1 rounded text-[11px] font-mono bg-emerald-950/50 border border-emerald-800/80 text-emerald-300';
+        document.getElementById('connectionText').textContent = ':8000 OK';
 
         const reqCount = health.total_requests_processed || 0;
         const retrainCount = health.total_retrains_triggered || 0;
         const activeVer = health.active_model_version || 'v1';
 
-        // Trigger flash if numbers changed
-        if (prevTotalRequests !== null && prevTotalRequests !== reqCount) triggerFlash('totalRequests');
-        if (prevTotalRetrains !== null && prevTotalRetrains !== retrainCount) triggerFlash('totalRetrains');
-        if (prevActiveVersion !== null && prevActiveVersion !== activeVer) triggerFlash('activeModelVersion');
+        if (prevTotalRequests !== null && prevTotalRequests !== reqCount) triggerFlash('headerTotalReq');
+        if (prevTotalRetrains !== null && prevTotalRetrains !== retrainCount) triggerFlash('headerTotalRetrains');
+        if (prevActiveVersion !== null && prevActiveVersion !== activeVer) triggerFlash('headerActiveModel');
 
         prevTotalRequests = reqCount;
         prevTotalRetrains = retrainCount;
         prevActiveVersion = activeVer;
 
-        document.getElementById('activeModelVersion').textContent = activeVer;
-        document.getElementById('totalRequests').textContent = reqCount.toLocaleString();
-        document.getElementById('totalRetrains').textContent = retrainCount;
-        document.getElementById('activeModelType').textContent = `${health.model_type || 'RandomForest'} (Zero Downtime)`;
+        document.getElementById('headerTotalReq').textContent = reqCount.toLocaleString();
+        document.getElementById('headerTotalRetrains').textContent = retrainCount;
+        document.getElementById('headerActiveModel').textContent = `${activeVer} (${health.model_type === 'gb' ? 'GradientBoosting' : 'RandomForest'})`;
 
         isStreamingTraffic = !!health.is_streaming;
         updateStreamButtonUI(isStreamingTraffic);
 
-        // Fetch Drift Status
+        // 2. Drift Status
         const driftRes = await fetch(`${API_BASE}/drift/status`);
         if (driftRes.ok) {
           const drift = await driftRes.json();
           renderDriftStatus(drift);
         }
 
-        // Fetch Models
+        // 3. Model Registry
         const modelsRes = await fetch(`${API_BASE}/models`);
         if (modelsRes.ok) {
           const modelsData = await modelsRes.json();
           renderModelRegistry(modelsData.models || []);
         }
 
-        // Fetch Events
-        const eventsRes = await fetch(`${API_BASE}/events?limit=25`);
+        // 4. Pipeline Events
+        const eventsRes = await fetch(`${API_BASE}/events?limit=20`);
         if (eventsRes.ok) {
           const eventsData = await eventsRes.json();
           renderEventLog(eventsData.events || []);
         }
 
-        // Fetch Comparison
+        // 5. Benchmark Comparison
         const compRes = await fetch(`${API_BASE}/drift/comparison`);
         if (compRes.ok) {
           const compData = await compRes.json();
@@ -806,48 +516,46 @@
         }
 
       } catch (err) {
-        document.getElementById('connectionStatus').className = 'flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-full bg-rose-950/70 border border-rose-800 text-rose-300';
-        document.getElementById('connectionText').textContent = 'Backend Offline';
+        document.getElementById('connectionStatus').className = 'flex items-center space-x-1.5 px-2 py-1 rounded text-[11px] font-mono bg-rose-950/70 border border-rose-800 text-rose-300';
+        document.getElementById('connectionText').textContent = 'OFFLINE';
       }
     }
 
-    // Render Drift Status UI & KS Bar Chart
+    // Render Drift State in Header, DAG Topology and KS Table
     function renderDriftStatus(drift) {
-      const banner = document.getElementById('driftBannerCard');
-      const badge = document.getElementById('driftStatusBadge');
-      const indicator = document.getElementById('driftStatusIndicator');
-      const desc = document.getElementById('driftStatusDesc');
+      const headerBadge = document.getElementById('headerDriftBadge');
+      const headerDot = document.getElementById('headerDriftDot');
+      const headerText = document.getElementById('headerDriftText');
+      const driftNodeBox = document.getElementById('node-drift-box');
 
       document.getElementById('currentWindowSamples').textContent = drift.current_samples || 0;
       document.getElementById('maxWindowSize').textContent = drift.window_size || 100;
+      document.getElementById('diagWindowSize').textContent = drift.window_size || 100;
 
       if (drift.drift_detected) {
-        banner.className = 'glass-card rounded-2xl p-5 shadow-xl shadow-rose-950/40 relative overflow-hidden border-2 border-rose-500/80 pulse-alert';
-        badge.textContent = 'DRIFT DETECTED';
-        badge.className = 'font-display text-2xl font-black text-rose-400 tracking-wide';
-        indicator.className = 'h-3.5 w-3.5 rounded-full bg-rose-500 animate-ping shadow-sm shadow-rose-500';
-        desc.textContent = `Alert: ${drift.drifted_features_count} features breached p < 0.05 threshold`;
+        headerBadge.className = 'flex items-center space-x-1.5 px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-rose-950 text-rose-300 border border-rose-600 animate-pulse';
+        headerDot.className = 'h-1.5 w-1.5 rounded-full bg-rose-400';
+        headerText.textContent = `DRIFT DETECTED (${drift.drifted_features_count}/5)`;
+        if (driftNodeBox) driftNodeBox.setAttribute('stroke', '#f43f5e');
       } else if (drift.status === 'ACCUMULATING_DATA') {
-        banner.className = 'glass-card rounded-2xl p-5 shadow-lg border border-amber-500/40';
-        badge.textContent = 'ACCUMULATING';
-        badge.className = 'font-display text-2xl font-black text-amber-400 tracking-wide';
-        indicator.className = 'h-3.5 w-3.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500';
-        desc.textContent = `Gathering feature samples (${drift.current_samples}/20 min)`;
+        headerBadge.className = 'flex items-center space-x-1.5 px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-amber-950 text-amber-300 border border-amber-800';
+        headerDot.className = 'h-1.5 w-1.5 rounded-full bg-amber-400';
+        headerText.textContent = `ACCUMULATING (${drift.current_samples}/20)`;
+        if (driftNodeBox) driftNodeBox.setAttribute('stroke', '#1f2d42');
       } else {
-        banner.className = 'glass-card rounded-2xl p-5 shadow-lg border border-emerald-500/30';
-        badge.textContent = 'HEALTHY';
-        badge.className = 'font-display text-2xl font-black text-emerald-400 tracking-wide';
-        indicator.className = 'h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500';
-        desc.textContent = 'Feature distributions match training baseline (p > 0.05)';
+        headerBadge.className = 'flex items-center space-x-1.5 px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-950/80 text-emerald-300 border border-emerald-800';
+        headerDot.className = 'h-1.5 w-1.5 rounded-full bg-emerald-400';
+        headerText.textContent = 'HEALTHY (p > 0.05)';
+        if (driftNodeBox) driftNodeBox.setAttribute('stroke', '#1f2d42');
       }
 
-      // Populate KS Table & Visual Bars
+      // Populate KS Table
       const tbody = document.getElementById('driftTableBody');
       const features = drift.features || {};
       const featKeys = Object.keys(features);
 
       if (featKeys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 font-sans">No feature logs in current window.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500 font-sans">No feature logs in active window.</td></tr>`;
         return;
       }
 
@@ -859,30 +567,30 @@
         const pValPct = Math.min(100, Math.max(0, (pVal / 1.0) * 100));
 
         html += `
-          <tr class="${isDrift ? 'bg-rose-950/25 text-rose-200 font-semibold' : 'hover:bg-dark-850/40 text-slate-300'}">
-            <td class="py-3 px-3.5 font-bold ${isDrift ? 'text-rose-400' : 'text-slate-200'}">
+          <tr class="${isDrift ? 'bg-rose-950/30 text-rose-200' : 'hover:bg-console-850/50 text-slate-300'}">
+            <td class="py-1.5 px-2.5 font-bold ${isDrift ? 'text-rose-400' : 'text-slate-200'}">
               ${key}
             </td>
-            <td class="py-3 px-3.5 text-slate-300 font-mono">${item.baseline_mean.toFixed(2)}</td>
-            <td class="py-3 px-3.5 ${isDrift ? 'text-rose-300 font-bold' : 'text-slate-300'} font-mono">${item.current_mean.toFixed(2)}</td>
-            <td class="py-3 px-3.5 font-mono text-slate-300">${item.ks_statistic.toFixed(4)}</td>
-            <td class="py-3 px-3.5">
-              <div class="space-y-1">
-                <div class="flex justify-between text-[11px] font-mono">
-                  <span class="${isDrift ? 'text-rose-400 font-bold' : 'text-slate-300'}">p = ${pVal.toFixed(4)}</span>
-                  <span class="text-slate-400 text-[10px]">p=0.05 mark</span>
+            <td class="py-1.5 px-2.5 text-slate-400">${item.baseline_mean.toFixed(2)}</td>
+            <td class="py-1.5 px-2.5 ${isDrift ? 'text-rose-300 font-bold' : 'text-slate-300'}">${item.current_mean.toFixed(2)}</td>
+            <td class="py-1.5 px-2.5 text-slate-400">${item.ks_statistic.toFixed(4)}</td>
+            <td class="py-1.5 px-2.5">
+              <div class="space-y-0.5">
+                <div class="flex justify-between text-[10px]">
+                  <span class="${isDrift ? 'text-rose-400 font-bold' : 'text-slate-400'}">p = ${pVal.toFixed(4)}</span>
+                  <span class="text-slate-600 text-[9px]">0.05</span>
                 </div>
-                <div class="w-full bg-dark-950 h-2.5 rounded-full relative overflow-hidden border border-slate-800">
-                  <div class="absolute top-0 bottom-0 left-[5%] w-0.5 bg-rose-500 z-10"></div>
-                  <div class="h-full rounded-full transition-all duration-300 ${isDrift ? 'bg-rose-500 shadow-sm shadow-rose-500' : 'bg-indigo-500'}" style="width: ${pValPct}%"></div>
+                <div class="w-full bg-console-950 h-1.5 rounded-sm relative overflow-hidden border border-slate-800">
+                  <div class="absolute top-0 bottom-0 left-[5%] w-[1px] bg-rose-500 z-10"></div>
+                  <div class="h-full ${isDrift ? 'bg-rose-500' : 'bg-cyan-500'}" style="width: ${pValPct}%"></div>
                 </div>
               </div>
             </td>
-            <td class="py-3 px-3.5 text-right font-sans">
-              <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                isDrift ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+            <td class="py-1.5 px-2.5 text-right font-sans">
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                isDrift ? 'bg-rose-950 text-rose-300 border border-rose-800' : 'bg-emerald-950 text-emerald-300 border border-emerald-900'
               }">
-                ${isDrift ? 'DRIFT' : 'HEALTHY'}
+                ${isDrift ? 'DRIFT' : 'OK'}
               </span>
             </td>
           </tr>
@@ -895,21 +603,21 @@
     function renderModelRegistry(models) {
       const tbody = document.getElementById('modelRegistryBody');
       if (!models || models.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 font-sans">No registered models found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500 font-sans">No registered models found.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = models.map(m => `
-        <tr class="${m.stage === 'Production' ? 'bg-indigo-950/30 font-semibold' : 'hover:bg-dark-850/30'}">
-          <td class="py-2.5 px-3 font-bold ${m.stage === 'Production' ? 'text-indigo-400' : 'text-slate-300'}">
+        <tr class="${m.stage === 'Production' ? 'bg-console-850 font-semibold' : 'hover:bg-console-850/40 text-slate-400'}">
+          <td class="py-1.5 px-2 font-bold ${m.stage === 'Production' ? 'text-cyan-300' : 'text-slate-300'}">
             ${m.version}
           </td>
-          <td class="py-2.5 px-3 text-slate-300">${m.model_type}</td>
-          <td class="py-2.5 px-3 text-emerald-400 font-bold font-mono">${(m.val_accuracy * 100).toFixed(1)}%</td>
-          <td class="py-2.5 px-3 text-slate-300 font-mono">${m.val_f1.toFixed(3)}</td>
-          <td class="py-2.5 px-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-              m.stage === 'Production' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-dark-800 text-slate-400'
+          <td class="py-1.5 px-2 text-slate-300">${m.model_type}</td>
+          <td class="py-1.5 px-2 text-emerald-400 font-bold">${(m.val_accuracy * 100).toFixed(1)}%</td>
+          <td class="py-1.5 px-2 text-slate-300">${m.val_f1.toFixed(3)}</td>
+          <td class="py-1.5 px-2 text-right">
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase ${
+              m.stage === 'Production' ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700/60' : 'bg-slate-900 text-slate-500'
             }">
               ${m.stage}
             </span>
@@ -918,43 +626,36 @@
       `).join('');
     }
 
-    // Render Event Log Stream with clear left border accents
+    // Render Pipeline Audit Log Console
     function renderEventLog(events) {
       const container = document.getElementById('eventLogContainer');
       if (!events || events.length === 0) {
-        container.innerHTML = `<div class="text-slate-400 text-center py-8">No events logged yet.</div>`;
+        container.innerHTML = `<div class="text-slate-500 text-center py-6 font-sans">No events logged yet.</div>`;
         return;
       }
 
       container.innerHTML = events.map(e => {
         const timeStr = new Date(e.timestamp * 1000).toLocaleTimeString();
-        let borderAccent = 'border-l-4 border-l-slate-600';
-        let badgeColor = 'bg-dark-800 text-slate-300 border-slate-700';
+        let badgeColor = 'text-slate-400 bg-slate-900 border-slate-800';
 
         if (e.event_type.includes('PROMOTED') || e.event_type.includes('SWAP')) {
-          borderAccent = 'border-l-4 border-l-emerald-500';
-          badgeColor = 'bg-emerald-950/70 text-emerald-300 border-emerald-800';
+          badgeColor = 'text-emerald-400 bg-emerald-950/60 border-emerald-800';
         } else if (e.event_type.includes('DRIFT')) {
-          borderAccent = 'border-l-4 border-l-rose-500';
-          badgeColor = 'bg-rose-950/70 text-rose-300 border-rose-800';
+          badgeColor = 'text-rose-400 bg-rose-950/60 border-rose-800';
         } else if (e.event_type.includes('RETRAIN')) {
-          borderAccent = 'border-l-4 border-l-amber-500';
-          badgeColor = 'bg-amber-950/70 text-amber-300 border-amber-800';
-        } else if (e.event_type.includes('STREAM')) {
-          borderAccent = 'border-l-4 border-l-indigo-500';
-          badgeColor = 'bg-indigo-950/70 text-indigo-300 border-indigo-800';
+          badgeColor = 'text-amber-400 bg-amber-950/60 border-amber-800';
         }
 
         return `
-          <div class="p-3 rounded-xl bg-dark-900/90 border border-slate-800 hover:border-slate-700 transition space-y-1 ${borderAccent}">
-            <div class="flex items-center justify-between text-[11px]">
-              <span class="font-bold px-1.5 py-0.5 rounded border ${badgeColor} text-[10px]">
-                ${e.event_type}
-              </span>
-              <span class="text-slate-400 font-mono text-[10px]">${timeStr}</span>
+          <div class="px-2 py-1.5 rounded bg-console-950/80 border border-console-border hover:border-slate-700 flex items-start justify-between gap-2">
+            <div class="space-y-0.5 flex-1 min-w-0">
+              <div class="flex items-center space-x-2">
+                <span class="px-1 rounded border ${badgeColor} text-[9px] font-bold">${e.event_type}</span>
+                <span class="text-slate-200 font-medium truncate">${e.title}</span>
+              </div>
+              ${e.details ? `<div class="text-[10px] text-slate-400 truncate">${e.details}</div>` : ''}
             </div>
-            <p class="font-semibold text-slate-100 text-xs">${e.title}</p>
-            ${e.details ? `<p class="text-[11px] text-slate-400 leading-normal font-mono">${e.details}</p>` : ''}
+            <span class="text-slate-500 text-[10px] whitespace-nowrap">${timeStr}</span>
           </div>
         `;
       }).join('');
@@ -968,48 +669,48 @@
       const gain = document.getElementById('compGain');
 
       if (comp.status === 'PROMOTED' && comp.old_accuracy_pct !== null) {
-        badge.textContent = `Active: ${comp.new_version || 'v2'} Promoted`;
-        badge.className = 'text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+        badge.textContent = `Active: ${comp.new_version || 'v2'} PROMOTED`;
+        badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800';
         
         oldAcc.textContent = `${comp.old_accuracy_pct}%`;
         newAcc.textContent = `${comp.new_accuracy_pct}%`;
         
         const diff = comp.improvement_pct || (comp.new_accuracy_pct - comp.old_accuracy_pct);
-        gain.innerHTML = `<span class="inline-flex items-center space-x-1"><span>${diff >= 0 ? '▲ +' : '▼ '}${Math.abs(diff).toFixed(1)}%</span></span>`;
-        gain.className = `font-display text-4xl font-black ${diff >= 0 ? 'text-emerald-400' : 'text-rose-400'} mt-2`;
+        gain.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}% recovery`;
+        gain.className = `text-sm font-bold font-mono ${diff >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
         document.getElementById('compNewVersion').textContent = `${comp.new_version || 'Retrained'} Promoted`;
         document.getElementById('compOldVersion').textContent = `${comp.old_version || 'Baseline'} Champion`;
       } else {
-        badge.textContent = 'Awaiting First Retrain';
-        badge.className = 'text-xs font-semibold px-3 py-1 rounded-full bg-dark-850 text-slate-400 border border-slate-700';
+        badge.textContent = 'Awaiting Retrain';
+        badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded bg-console-950 text-slate-400 border border-console-border';
         oldAcc.textContent = '--%';
         newAcc.textContent = '--%';
         gain.textContent = '--%';
       }
     }
 
-    // Update Stream Button UI State
+    // Update Stream Button State
     function updateStreamButtonUI(isStreaming) {
       const btn = document.getElementById('btnStreamTraffic');
       const btnText = document.getElementById('btnStreamTrafficText');
       const btnIcon = document.getElementById('btnStreamTrafficIcon');
-      const stateText = document.getElementById('streamingStateText');
+      const streamHeaderStatus = document.getElementById('headerStreamStatus');
 
       if (isStreaming) {
-        btn.className = 'flex items-center justify-center space-x-2 px-4 py-3.5 bg-rose-600 hover:bg-rose-500 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-rose-600/20';
-        btnText.textContent = 'Stop Traffic Stream';
-        btnIcon.innerHTML = `<i data-lucide="square" class="w-4 h-4"></i>`;
-        stateText.innerHTML = `<span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span><span class="text-emerald-400 font-semibold">Streaming Live Trades (5 req/s)</span>`;
+        btn.className = 'flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded bg-rose-950/60 hover:bg-rose-900 border border-rose-700 text-rose-200 font-mono text-[11px] font-semibold transition';
+        btnText.textContent = 'Stop Stream';
+        btnIcon.innerHTML = `<i data-lucide="square" class="w-3.5 h-3.5 text-rose-400"></i>`;
+        streamHeaderStatus.innerHTML = `<span class="text-emerald-400 font-bold">STREAMING (5/s)</span>`;
       } else {
-        btn.className = 'flex items-center justify-center space-x-2 px-4 py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-indigo-600/20';
-        btnText.textContent = 'Stream Normal Traffic';
-        btnIcon.innerHTML = `<i data-lucide="radio" class="w-4 h-4"></i>`;
-        stateText.innerHTML = `<span class="h-2 w-2 rounded-full bg-slate-500"></span><span>Simulator Idle</span>`;
+        btn.className = 'flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded bg-console-850 hover:bg-console-800 border border-slate-700 text-slate-200 font-mono text-[11px] font-semibold transition';
+        btnText.textContent = 'Stream Traffic';
+        btnIcon.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5 text-cyan-400"></i>`;
+        streamHeaderStatus.textContent = 'IDLE';
       }
       lucide.createIcons();
     }
 
-    // Action Handlers with inline Spinner states
+    // Action Handlers
     async function toggleStreamTraffic() {
       const btn = document.getElementById('btnStreamTraffic');
       const btnText = document.getElementById('btnStreamTrafficText');
@@ -1021,7 +722,7 @@
           showFeedback('Traffic stream stopped');
         } else {
           const res = await fetch(`${API_BASE}/simulate/stream?rate=5.0`, { method: 'POST' });
-          showFeedback('Started normal trade stream (5 req/sec)');
+          showFeedback('Started synthetic trade stream (5 req/s)');
         }
       } catch (err) {
         showFeedback('Failed to toggle stream', true);
@@ -1034,20 +735,16 @@
     async function injectDriftBatch() {
       const btn = document.getElementById('btnInjectDrift');
       const btnText = document.getElementById('btnInjectDriftText');
-      const btnIcon = document.getElementById('btnInjectDriftIcon');
       btn.disabled = true;
-      btnText.textContent = 'Injecting Shift...';
-      btnIcon.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>`;
+      btnText.textContent = 'Injecting...';
       try {
         const res = await fetch(`${API_BASE}/simulate/drift?batch_size=50`, { method: 'POST' });
-        showFeedback('Injected 50 drifted trade orders! Watch KS p-values shift.');
+        showFeedback('Injected 50 drifted trade orders');
       } catch (err) {
         showFeedback('Failed to inject drift batch', true);
       } finally {
         btn.disabled = false;
-        btnText.textContent = 'Inject Drifted Batch (50)';
-        btnIcon.innerHTML = `<i data-lucide="zap" class="w-4 h-4"></i>`;
-        lucide.createIcons();
+        btnText.textContent = 'Inject Drift (50)';
         pollDashboardData();
       }
     }
@@ -1055,25 +752,21 @@
     async function triggerManualRetrain() {
       const btn = document.getElementById('btnForceRetrain');
       const btnText = document.getElementById('btnForceRetrainText');
-      const btnIcon = document.getElementById('btnForceRetrainIcon');
       btn.disabled = true;
-      btnText.textContent = 'Retraining Model...';
-      btnIcon.innerHTML = `<svg class="animate-spin h-4 w-4 text-cyan-400" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>`;
+      btnText.textContent = 'Retraining...';
       try {
         const res = await fetch(`${API_BASE}/retrain/trigger`, { method: 'POST' });
         const data = await res.json();
         if (data.success) {
-          showFeedback(`Retraining complete! Hot-swapped to ${data.promoted_version} with zero downtime.`);
+          showFeedback(`Promoted ${data.promoted_version} (Hot-swapped)`);
         } else {
-          showFeedback(data.message || 'Retraining failed validation gate', true);
+          showFeedback(data.message || 'Challenger rejected by validation gate', true);
         }
       } catch (err) {
-        showFeedback('Retraining request failed', true);
+        showFeedback('Retrain request failed', true);
       } finally {
         btn.disabled = false;
-        btnText.textContent = 'Force Retraining Run';
-        btnIcon.innerHTML = `<i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i>`;
-        lucide.createIcons();
+        btnText.textContent = 'Force Retrain';
         pollDashboardData();
       }
     }
@@ -1086,26 +779,21 @@
       btnText.textContent = 'Resetting...';
       try {
         const res = await fetch(`${API_BASE}/pipeline/reset`, { method: 'POST' });
-        showFeedback('Pipeline reset to baseline v1 state.');
+        showFeedback('Pipeline reset to baseline v1');
       } catch (err) {
         showFeedback('Reset request failed', true);
       } finally {
         btn.disabled = false;
-        btnText.textContent = 'Reset Pipeline (v1)';
+        btnText.textContent = 'Reset Window';
         pollDashboardData();
       }
     }
 
-    // Initialize application, Lucide icons, Onboarding Tour, and Polling
+    // Initialize application, Lucide icons, and 2s Polling
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
       pollDashboardData();
       setInterval(pollDashboardData, 2000);
-
-      // Launch tour automatically on first user visit
-      setTimeout(() => {
-        startInteractiveTour(false);
-      }, 800);
     });
   </script>
 </body>
