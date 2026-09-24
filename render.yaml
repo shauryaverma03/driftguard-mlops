@@ -1,11 +1,11 @@
 services:
   - type: web
     name: driftguard-mlops
-    env: python
+    runtime: python
     region: oregon
     plan: free
-    buildCommand: "pip install -r requirements.txt && python -m ml.train_baseline"
-    startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+    buildCommand: "./build.sh"
+    startCommand: "PYTHONPATH=. uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHONPATH
         value: .
