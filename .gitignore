@@ -52,6 +52,10 @@ coverage.xml
 driftguard.db
 mlflow.db
 
+# Generated Model Artifacts
+models/*.joblib
+!models/.gitkeep
+
 # MLflow tracking artifacts
 mlruns/
 .mlflow/

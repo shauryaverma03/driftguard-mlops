@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DriftGuard — Continuous MLOps Drift Detection & Retraining</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            surface: {
+              900: '#0f172a',
+              800: '#1e293b',
+              700: '#334155',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.02); }
+    }
+    .pulse-alert {
+      animation: pulse-slow 2s infinite ease-in-out;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation / Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i data-lucide="shield-alert" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-bold tracking-tight text-white">DriftGuard</h1>
+            <span class="text-xs font-mono uppercase bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full">MLOps v1.0</span>
+          </div>
+          <p class="text-xs text-slate-400">Continuous Statistical Drift Detection & Hot-Swap Retraining</p>
+        </div>
+      </div>
+
+      <!-- Backend Connection State & Active Model Tag -->
+      <div class="flex items-center space-x-3">
+        <div id="connectionStatus" class="flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
+          <span class="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
+          <span id="connectionText">Connected to :8000</span>
+        </div>
+        <a href="http://127.0.0.1:8000/metrics" target="_blank" class="text-xs flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">
+          <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span>/metrics</span>
+        </a>
+        <a href="http://127.0.0.1:8000/docs" target="_blank" class="text-xs flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">
+          <i data-lucide="file-code-2" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span>Swagger API</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- 1. Status Overview Header Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Drift Status Primary Banner -->
+      <div id="driftBannerCard" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">System State</span>
+          <i data-lucide="activity" class="w-4 h-4 text-slate-400"></i>
+        </div>
+        <div class="mt-3 flex items-center space-x-3">
+          <span id="driftStatusIndicator" class="h-3.5 w-3.5 rounded-full bg-emerald-500"></span>
+          <div id="driftStatusBadge" class="text-xl font-extrabold text-emerald-400 tracking-wide">
+            HEALTHY
+          </div>
+        </div>
+        <p id="driftStatusDesc" class="mt-2 text-xs text-slate-400">
+          Features match baseline distributions (p &gt; 0.05)
+        </p>
+      </div>
+
+      <!-- Active Model Card -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Serving Model</span>
+          <i data-lucide="cpu" class="w-4 h-4 text-indigo-400"></i>
+        </div>
+        <div class="mt-3 flex items-baseline space-x-2">
+          <span id="activeModelVersion" class="text-2xl font-black text-white">v1</span>
+          <span id="activeModelStage" class="text-xs font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">Production</span>
+        </div>
+        <p id="activeModelType" class="mt-2 text-xs text-slate-400">RandomForest (Zero Downtime)</p>
+      </div>
+
+      <!-- Requests Processed -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Requests Processed</span>
+          <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
+        </div>
+        <div class="mt-3">
+          <span id="totalRequests" class="text-2xl font-black text-white">0</span>
+        </div>
+        <p id="streamingStateText" class="mt-2 text-xs text-slate-400 flex items-center space-x-1.5">
+          <span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
+          <span>Simulator Idle</span>
+        </p>
+      </div>
+
+      <!-- Retrains Triggered -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Retrains Promoted</span>
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-amber-400"></i>
+        </div>
+        <div class="mt-3 flex items-baseline space-x-2">
+          <span id="totalRetrains" class="text-2xl font-black text-white">0</span>
+          <span class="text-xs text-slate-400">cycles</span>
+        </div>
+        <p class="mt-2 text-xs text-slate-400">Validation-gated auto-swaps</p>
+      </div>
+    </div>
+
+    <!-- 2. Traffic Simulator & Demo Controls -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <i data-lucide="play-circle" class="w-5 h-5 text-indigo-400"></i>
+            <span>Traffic Simulator & Pipeline Actions</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Stream synthetic trade requests or inject a distribution shift batch to test live drift detection</p>
+        </div>
+        <div id="actionFeedback" class="text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hidden">
+          Ready
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+        <!-- Button 1: Stream Normal -->
+        <button id="btnStreamTraffic" onclick="toggleStreamTraffic()" class="flex items-center justify-center space-x-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-indigo-600/20 disabled:opacity-50">
+          <i data-lucide="radio" class="w-4 h-4"></i>
+          <span id="btnStreamTrafficText">Stream Normal Traffic</span>
+        </button>
+
+        <!-- Button 2: Inject Drift Batch -->
+        <button id="btnInjectDrift" onclick="injectDriftBatch()" class="flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 active:from-rose-700 text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-rose-600/20 disabled:opacity-50">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          <span id="btnInjectDriftText">Inject Drifted Batch (50)</span>
+        </button>
+
+        <!-- Button 3: Force Retrain -->
+        <button id="btnForceRetrain" onclick="triggerManualRetrain()" class="flex items-center justify-center space-x-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-semibold text-sm rounded-xl transition disabled:opacity-50">
+          <i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i>
+          <span id="btnForceRetrainText">Force Retraining Run</span>
+        </button>
+
+        <!-- Button 4: Reset Pipeline -->
+        <button id="btnResetPipeline" onclick="resetPipeline()" class="flex items-center justify-center space-x-2 px-4 py-3 bg-slate-800 hover:bg-rose-950/40 text-slate-300 hover:text-rose-400 border border-slate-700 hover:border-rose-800/50 font-semibold text-sm rounded-xl transition disabled:opacity-50">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          <span id="btnResetPipelineText">Reset Pipeline (v1)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. KS-Test Drift Detection Panel & Bar Charts -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <i data-lucide="git-commit" class="w-5 h-5 text-cyan-400"></i>
+            <span>Kolmogorov-Smirnov (KS) Drift Analysis</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Two-sample Kolmogorov-Smirnov test (<code class="font-mono text-indigo-300">scipy.stats.ks_2samp</code>) comparing rolling window against baseline distribution</p>
+        </div>
+        <div class="flex items-center space-x-4 text-xs">
+          <div class="flex items-center space-x-1.5 text-slate-300">
+            <span class="inline-block w-3 h-0.5 bg-rose-500"></span>
+            <span>Threshold: <strong class="font-mono text-rose-400">p = 0.05</strong></span>
+          </div>
+          <div class="text-slate-400">
+            Rolling Window: <span id="currentWindowSamples" class="font-mono text-white">0</span> / <span id="maxWindowSize" class="font-mono text-white">100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Table & Visual KS Bars -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+              <th class="py-3 px-3">Feature Name</th>
+              <th class="py-3 px-3">Baseline Mean</th>
+              <th class="py-3 px-3">Window Mean</th>
+              <th class="py-3 px-3">KS Statistic</th>
+              <th class="py-3 px-3 w-56">p-value Distribution (Threshold 0.05)</th>
+              <th class="py-3 px-3 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody id="driftTableBody" class="divide-y divide-slate-800/60 font-mono text-xs">
+            <tr>
+              <td colspan="6" class="py-6 text-center text-slate-500 font-sans">
+                Accumulating trade logs for statistical evaluation...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. Before & After Retraining Comparison View -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <i data-lucide="git-compare" class="w-5 h-5 text-emerald-400"></i>
+            <span>Retraining Benchmark Comparison (Drifted Market Batch)</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Real validation gate accuracy comparison between the prior champion and the newly retrained challenger model</p>
+        </div>
+        <span id="comparisonBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+          No Retrain Yet
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <!-- Old Model Accuracy Card -->
+        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 text-center">
+          <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Prior Model Accuracy</span>
+          <div id="compOldAccuracy" class="text-3xl font-extrabold text-slate-300 mt-2">
+            --%
+          </div>
+          <span id="compOldVersion" class="text-xs text-slate-500 mt-1 block">Baseline v1</span>
+        </div>
+
+        <!-- New Model Accuracy Card -->
+        <div class="bg-slate-950/60 border border-emerald-900/40 rounded-xl p-4 text-center relative overflow-hidden">
+          <div class="absolute top-0 right-0 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-bl">PROMOTED</div>
+          <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Retrained Model Accuracy</span>
+          <div id="compNewAccuracy" class="text-3xl font-extrabold text-emerald-400 mt-2">
+            --%
+          </div>
+          <span id="compNewVersion" class="text-xs text-emerald-500/80 mt-1 block">Challenger Hot-Swapped</span>
+        </div>
+
+        <!-- Net Gain Card -->
+        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 text-center">
+          <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Adaptation Net Gain</span>
+          <div id="compGain" class="text-3xl font-extrabold text-cyan-400 mt-2">
+            --%
+          </div>
+          <span class="text-xs text-slate-500 mt-1 block">Held-out Drift Test Recovery</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Bottom Split: Model Registry & Pipeline Event Audit Log -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Model Version Registry -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <i data-lucide="database" class="w-5 h-5 text-indigo-400"></i>
+            <span>Model Version Registry</span>
+          </h2>
+          <span class="text-xs text-slate-400">MLflow Tracked</span>
+        </div>
+        <div class="overflow-x-auto custom-scrollbar flex-1">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                <th class="py-2.5 px-2">Version</th>
+                <th class="py-2.5 px-2">Type</th>
+                <th class="py-2.5 px-2">Val Acc</th>
+                <th class="py-2.5 px-2">Val F1</th>
+                <th class="py-2.5 px-2">Stage</th>
+              </tr>
+            </thead>
+            <tbody id="modelRegistryBody" class="divide-y divide-slate-800/50 font-mono">
+              <tr>
+                <td colspan="5" class="py-4 text-center text-slate-500 font-sans">Loading registered models...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pipeline Audit Event Log -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <i data-lucide="clock" class="w-5 h-5 text-cyan-400"></i>
+            <span>Pipeline Audit Event Log</span>
+          </h2>
+          <span class="text-xs text-slate-400">Real-time Stream</span>
+        </div>
+        <div id="eventLogContainer" class="space-y-2.5 max-h-72 overflow-y-auto pr-1 custom-scrollbar flex-1 text-xs">
+          <div class="text-slate-500 text-center py-4">Waiting for pipeline events...</div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- JavaScript Application Logic -->
+  <script>
+    const API_BASE = 'http://127.0.0.1:8000';
+    let isStreamingTraffic = false;
+
+    // Toast feedback helper
+    function showFeedback(text, isError = false) {
+      const el = document.getElementById('actionFeedback');
+      el.textContent = text;
+      el.className = `text-xs font-medium px-3 py-1.5 rounded-lg border ${
+        isError ? 'bg-rose-950/60 border-rose-800 text-rose-300' : 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
+      }`;
+      el.classList.remove('hidden');
+      setTimeout(() => {
+        el.classList.add('hidden');
+      }, 4000);
+    }
+
+    // --- Poll Function (Runs every 2 seconds) ---
+    async function pollDashboardData() {
+      try {
+        // Fetch Health
+        const healthRes = await fetch(`${API_BASE}/health`);
+        if (!healthRes.ok) throw new Error('Health check failed');
+        const health = await healthRes.json();
+
+        // Update Backend Connection status
+        document.getElementById('connectionStatus').className = 'flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-full bg-emerald-950/50 border border-emerald-800 text-emerald-300';
+        document.getElementById('connectionText').textContent = 'Live Backend :8000';
+
+        document.getElementById('activeModelVersion').textContent = health.active_model_version || 'v1';
+        document.getElementById('totalRequests').textContent = (health.total_requests_processed || 0).toLocaleString();
+        document.getElementById('totalRetrains').textContent = health.total_retrains_triggered || 0;
+        document.getElementById('activeModelType').textContent = `${health.model_type || 'RandomForest'} (Zero Downtime)`;
+
+        isStreamingTraffic = !!health.is_streaming;
+        updateStreamButtonUI(isStreamingTraffic);
+
+        // Fetch Drift Status
+        const driftRes = await fetch(`${API_BASE}/drift/status`);
+        if (driftRes.ok) {
+          const drift = await driftRes.json();
+          renderDriftStatus(drift);
+        }
+
+        // Fetch Model Registry
+        const modelsRes = await fetch(`${API_BASE}/models`);
+        if (modelsRes.ok) {
+          const modelsData = await modelsRes.json();
+          renderModelRegistry(modelsData.models || []);
+        }
+
+        // Fetch Pipeline Events
+        const eventsRes = await fetch(`${API_BASE}/events?limit=25`);
+        if (eventsRes.ok) {
+          const eventsData = await eventsRes.json();
+          renderEventLog(eventsData.events || []);
+        }
+
+        // Fetch Before/After Comparison
+        const compRes = await fetch(`${API_BASE}/drift/comparison`);
+        if (compRes.ok) {
+          const compData = await compRes.json();
+          renderComparison(compData);
+        }
+
+      } catch (err) {
+        // Handle backend offline state gracefully
+        document.getElementById('connectionStatus').className = 'flex items-center space-x-2 text-xs font-medium px-3 py-1.5 rounded-full bg-rose-950/50 border border-rose-800 text-rose-300';
+        document.getElementById('connectionText').textContent = 'Backend Offline';
+      }
+    }
+
+    // Render Drift Status UI & KS Bar Chart
+    function renderDriftStatus(drift) {
+      const banner = document.getElementById('driftBannerCard');
+      const badge = document.getElementById('driftStatusBadge');
+      const indicator = document.getElementById('driftStatusIndicator');
+      const desc = document.getElementById('driftStatusDesc');
+
+      document.getElementById('currentWindowSamples').textContent = drift.current_samples || 0;
+      document.getElementById('maxWindowSize').textContent = drift.window_size || 100;
+
+      if (drift.drift_detected) {
+        banner.className = 'bg-slate-900 border-2 border-rose-500/80 rounded-2xl p-5 shadow-xl shadow-rose-950/30 relative overflow-hidden pulse-alert';
+        badge.textContent = 'DRIFT DETECTED';
+        badge.className = 'text-xl font-extrabold text-rose-400 tracking-wide';
+        indicator.className = 'h-3.5 w-3.5 rounded-full bg-rose-500 animate-ping';
+        desc.textContent = `Alert: ${drift.drifted_features_count} features breached p < 0.05 threshold`;
+      } else if (drift.status === 'ACCUMULATING_DATA') {
+        banner.className = 'bg-slate-900 border border-amber-500/40 rounded-2xl p-5 shadow-lg';
+        badge.textContent = 'ACCUMULATING';
+        badge.className = 'text-xl font-extrabold text-amber-400 tracking-wide';
+        indicator.className = 'h-3.5 w-3.5 rounded-full bg-amber-500';
+        desc.textContent = `Gathering feature samples (${drift.current_samples}/20 min)`;
+      } else {
+        banner.className = 'bg-slate-900 border border-emerald-500/30 rounded-2xl p-5 shadow-lg';
+        badge.textContent = 'HEALTHY';
+        badge.className = 'text-xl font-extrabold text-emerald-400 tracking-wide';
+        indicator.className = 'h-3.5 w-3.5 rounded-full bg-emerald-500';
+        desc.textContent = 'Feature distributions match training baseline (p > 0.05)';
+      }
+
+      // Populate KS Table & Visual Bars
+      const tbody = document.getElementById('driftTableBody');
+      const features = drift.features || {};
+      const featKeys = Object.keys(features);
+
+      if (featKeys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500 font-sans">No feature logs in current window.</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      featKeys.forEach(key => {
+        const item = features[key];
+        const pVal = item.p_value;
+        const isDrift = item.is_drifted;
+        const pValPct = Math.min(100, Math.max(0, (pVal / 1.0) * 100));
+
+        html += `
+          <tr class="${isDrift ? 'bg-rose-950/20 text-rose-200' : 'hover:bg-slate-800/30 text-slate-300'}">
+            <td class="py-3 px-3 font-semibold ${isDrift ? 'text-rose-400 font-bold' : 'text-slate-200'}">
+              ${key}
+            </td>
+            <td class="py-3 px-3 text-slate-400">${item.baseline_mean.toFixed(2)}</td>
+            <td class="py-3 px-3 ${isDrift ? 'text-rose-300 font-bold' : 'text-slate-300'}">${item.current_mean.toFixed(2)}</td>
+            <td class="py-3 px-3 font-mono">${item.ks_statistic.toFixed(4)}</td>
+            <td class="py-3 px-3">
+              <div class="space-y-1">
+                <div class="flex justify-between text-[11px] font-mono">
+                  <span class="${isDrift ? 'text-rose-400 font-bold' : 'text-slate-400'}">p = ${pVal.toFixed(4)}</span>
+                  <span class="text-slate-500 text-[10px]">p=0.05 mark</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full relative overflow-hidden">
+                  <!-- 0.05 threshold line -->
+                  <div class="absolute top-0 bottom-0 left-[5%] w-0.5 bg-rose-500 z-10"></div>
+                  <!-- p-value bar -->
+                  <div class="h-full rounded-full ${isDrift ? 'bg-rose-500 shadow-sm shadow-rose-500' : 'bg-indigo-500'}" style="width: ${pValPct}%"></div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-3 text-right font-sans">
+              <span class="px-2 py-0.5 rounded text-[11px] font-bold uppercase ${
+                isDrift ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+              }">
+                ${isDrift ? 'DRIFT' : 'OK'}
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    // Render Model Registry Table
+    function renderModelRegistry(models) {
+      const tbody = document.getElementById('modelRegistryBody');
+      if (!models || models.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-500 font-sans">No registered models found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = models.map(m => `
+        <tr class="${m.stage === 'Production' ? 'bg-indigo-950/20' : 'hover:bg-slate-800/30'}">
+          <td class="py-2.5 px-2 font-bold ${m.stage === 'Production' ? 'text-indigo-400' : 'text-slate-300'}">
+            ${m.version}
+          </td>
+          <td class="py-2.5 px-2 text-slate-400">${m.model_type}</td>
+          <td class="py-2.5 px-2 text-emerald-400 font-bold">${(m.val_accuracy * 100).toFixed(1)}%</td>
+          <td class="py-2.5 px-2 text-slate-300">${m.val_f1.toFixed(3)}</td>
+          <td class="py-2.5 px-2">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+              m.stage === 'Production' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'
+            }">
+              ${m.stage}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Render Event Log Stream
+    function renderEventLog(events) {
+      const container = document.getElementById('eventLogContainer');
+      if (!events || events.length === 0) {
+        container.innerHTML = `<div class="text-slate-500 text-center py-4">No events logged yet.</div>`;
+        return;
+      }
+
+      container.innerHTML = events.map(e => {
+        const timeStr = new Date(e.timestamp * 1000).toLocaleTimeString();
+        let badgeColor = 'bg-slate-800 text-slate-400 border-slate-700';
+        let icon = 'info';
+
+        if (e.event_type.includes('PROMOTED') || e.event_type.includes('SWAP')) {
+          badgeColor = 'bg-emerald-950/60 text-emerald-400 border-emerald-800';
+          icon = 'check-circle';
+        } else if (e.event_type.includes('DRIFT')) {
+          badgeColor = 'bg-rose-950/60 text-rose-400 border-rose-800';
+          icon = 'alert-triangle';
+        } else if (e.event_type.includes('RETRAIN')) {
+          badgeColor = 'bg-amber-950/60 text-amber-400 border-amber-800';
+          icon = 'refresh-cw';
+        }
+
+        return `
+          <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 transition space-y-1">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-semibold px-1.5 py-0.5 rounded border ${badgeColor} text-[10px]">
+                ${e.event_type}
+              </span>
+              <span class="text-slate-500 font-mono text-[10px]">${timeStr}</span>
+            </div>
+            <p class="font-medium text-slate-200 text-xs">${e.title}</p>
+            ${e.details ? `<p class="text-[11px] text-slate-400">${e.details}</p>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Before/After Comparison
+    function renderComparison(comp) {
+      const badge = document.getElementById('comparisonBadge');
+      const oldAcc = document.getElementById('compOldAccuracy');
+      const newAcc = document.getElementById('compNewAccuracy');
+      const gain = document.getElementById('compGain');
+
+      if (comp.status === 'PROMOTED' && comp.old_accuracy_pct !== null) {
+        badge.textContent = `Active: ${comp.new_version || 'v2'}`;
+        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        
+        oldAcc.textContent = `${comp.old_accuracy_pct}%`;
+        newAcc.textContent = `${comp.new_accuracy_pct}%`;
+        
+        const diff = comp.improvement_pct || (comp.new_accuracy_pct - comp.old_accuracy_pct);
+        gain.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}%`;
+        gain.className = `text-3xl font-extrabold ${diff >= 0 ? 'text-emerald-400' : 'text-rose-400'} mt-2`;
+        document.getElementById('compNewVersion').textContent = `${comp.new_version || 'Retrained'} Promoted`;
+        document.getElementById('compOldVersion').textContent = `${comp.old_version || 'Baseline'} Champion`;
+      } else {
+        badge.textContent = 'Awaiting First Retrain';
+        badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700';
+        oldAcc.textContent = '--%';
+        newAcc.textContent = '--%';
+        gain.textContent = '--%';
+      }
+    }
+
+    // --- Button UI Handlers ---
+    function updateStreamButtonUI(isStreaming) {
+      const btn = document.getElementById('btnStreamTraffic');
+      const btnText = document.getElementById('btnStreamTrafficText');
+      const stateText = document.getElementById('streamingStateText');
+
+      if (isStreaming) {
+        btn.className = 'flex items-center justify-center space-x-2 px-4 py-3 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-rose-600/20';
+        btnText.textContent = 'Stop Traffic Stream';
+        stateText.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping"></span><span class="text-emerald-400 font-semibold">Streaming Live Trades (5 req/s)</span>`;
+      } else {
+        btn.className = 'flex items-center justify-center space-x-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm rounded-xl transition shadow-lg shadow-indigo-600/20';
+        btnText.textContent = 'Stream Normal Traffic';
+        stateText.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span><span>Simulator Idle</span>`;
+      }
+    }
+
+    // Action 1: Toggle Normal Traffic Stream
+    async function toggleStreamTraffic() {
+      const btn = document.getElementById('btnStreamTraffic');
+      btn.disabled = true;
+      try {
+        if (isStreamingTraffic) {
+          const res = await fetch(`${API_BASE}/simulate/stop`, { method: 'POST' });
+          const data = await res.json();
+          showFeedback('Traffic stream stopped');
+        } else {
+          const res = await fetch(`${API_BASE}/simulate/stream?rate=5.0`, { method: 'POST' });
+          const data = await res.json();
+          showFeedback('Started normal trade stream (5 req/sec)');
+        }
+      } catch (err) {
+        showFeedback('Failed to toggle traffic stream', true);
+      } finally {
+        btn.disabled = false;
+        pollDashboardData();
+      }
+    }
+
+    // Action 2: Inject Drift Batch
+    async function injectDriftBatch() {
+      const btn = document.getElementById('btnInjectDrift');
+      const btnText = document.getElementById('btnInjectDriftText');
+      btn.disabled = true;
+      btnText.textContent = 'Injecting Shift...';
+      try {
+        const res = await fetch(`${API_BASE}/simulate/drift?batch_size=50`, { method: 'POST' });
+        const data = await res.json();
+        showFeedback('Injected 50 drifted market trade orders! Check KS p-values.');
+      } catch (err) {
+        showFeedback('Failed to inject drift batch', true);
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Inject Drifted Batch (50)';
+        pollDashboardData();
+      }
+    }
+
+    // Action 3: Trigger Retrain
+    async function triggerManualRetrain() {
+      const btn = document.getElementById('btnForceRetrain');
+      const btnText = document.getElementById('btnForceRetrainText');
+      btn.disabled = true;
+      btnText.textContent = 'Retraining Model...';
+      try {
+        const res = await fetch(`${API_BASE}/retrain/trigger`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showFeedback(`Retraining succeeded! Promoted ${data.promoted_version} with zero downtime.`);
+        } else {
+          showFeedback(data.message || 'Retraining failed validation gate', true);
+        }
+      } catch (err) {
+        showFeedback('Retraining request failed', true);
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Force Retraining Run';
+        pollDashboardData();
+      }
+    }
+
+    // Action 4: Reset Pipeline
+    async function resetPipeline() {
+      if (!confirm('Reset the feature store rolling window and restore baseline model v1?')) return;
+      const btn = document.getElementById('btnResetPipeline');
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API_BASE}/pipeline/reset`, { method: 'POST' });
+        const data = await res.json();
+        showFeedback('Pipeline reset to initial baseline state.');
+      } catch (err) {
+        showFeedback('Reset request failed', true);
+      } finally {
+        btn.disabled = false;
+        pollDashboardData();
+      }
+    }
+
+    // Initialize Lucide icons and Polling Interval (2s)
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      pollDashboardData();
+      setInterval(pollDashboardData, 2000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # 1. FastAPI Serving & DriftGuard Engine
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: driftguard-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+      - DB_PATH=driftguard.db
+      - WINDOW_SIZE=100
+      - P_VALUE_THRESHOLD=0.05
+      - MIN_FEATURES_DRIFTED=3
+      - AUTO_RETRAIN_ENABLED=true
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./driftguard.db:/app/driftguard.db
+      - ./mlflow.db:/app/mlflow.db
+    restart: unless-stopped
+
+  # 2. Prometheus Metrics Scraper
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: driftguard-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: driftguard-network
