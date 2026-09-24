@@ -294,7 +294,22 @@
 
     </div>
 
-    <!-- ==================== ROW 2: STATISTICAL KS DRIFT RADAR & BENCHMARK GATE ==================== -->
+    <!-- ==================== ROW 2: DRIFT SCORE TREND CHART ==================== -->
+    <div class="console-panel p-3">
+      <div class="flex items-center justify-between pb-2 border-b border-console-border/80 mb-2">
+        <div class="flex items-center space-x-2 font-mono text-[11px] font-semibold text-slate-300">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5 text-violet-400"></i>
+          <span>AGGREGATE DRIFT SCORE — ROLLING TREND (last 60 polls)</span>
+        </div>
+        <div class="flex items-center space-x-4 text-[10px] font-mono text-slate-500">
+          <span class="flex items-center space-x-1"><span class="inline-block w-6 h-px bg-cyan-500"></span><span>Drift Score (drifted features / 5)</span></span>
+          <span class="flex items-center space-x-1"><span class="inline-block w-6 h-px bg-rose-500 border-dashed"></span><span>Trigger Threshold (≥3/5)</span></span>
+        </div>
+      </div>
+      <canvas id="driftTrendChart" height="60" class="w-full"></canvas>
+    </div>
+
+    <!-- ==================== ROW 3: STATISTICAL KS DRIFT RADAR & BENCHMARK GATE ==================== -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
       
       <!-- KS-Test Distribution Shift Table (8 Cols) -->
@@ -345,28 +360,34 @@
             </span>
           </div>
 
-          <p class="text-[11px] text-slate-400 font-sans mb-3">
-            Challenger model benchmark evaluation on held-out drifted market test set before MLflow production promotion:
-          </p>
+          <!-- No-retrain-yet state -->
+          <div id="compNoDataState" class="py-4 text-center">
+            <div class="text-slate-500 font-mono text-[11px] mb-1">No retrain has run yet this session.</div>
+            <div class="text-slate-600 text-[10px] font-sans">Inject drift and trigger a retrain to see<br>champion vs. challenger benchmark comparison.</div>
+          </div>
 
-          <!-- Accuracy Split -->
-          <div class="grid grid-cols-2 gap-2 font-mono">
-            <div class="bg-console-950 p-2.5 rounded border border-console-border">
-              <div class="text-[10px] text-slate-500 uppercase">Prior Champion</div>
-              <div id="compOldAccuracy" class="text-2xl font-bold text-slate-300 mt-1">--%</div>
-              <div id="compOldVersion" class="text-[10px] text-slate-500 mt-0.5">Baseline v1</div>
-            </div>
-
-            <div class="bg-console-950 p-2.5 rounded border border-emerald-900/60 relative">
-              <div class="text-[10px] text-emerald-400 uppercase font-semibold">Challenger Acc</div>
-              <div id="compNewAccuracy" class="text-2xl font-bold text-emerald-400 mt-1">--%</div>
-              <div id="compNewVersion" class="text-[10px] text-emerald-500 mt-0.5">Retrained Model</div>
+          <!-- Accuracy Split (hidden until first retrain) -->
+          <div id="compDataState" class="hidden">
+            <p class="text-[11px] text-slate-400 font-sans mb-3">
+              Challenger vs. champion on held-out drifted market test set before MLflow promotion:
+            </p>
+            <div class="grid grid-cols-2 gap-2 font-mono">
+              <div class="bg-console-950 p-2.5 rounded border border-console-border">
+                <div class="text-[10px] text-slate-500 uppercase">Prior Champion</div>
+                <div id="compOldAccuracy" class="text-2xl font-bold text-slate-300 mt-1">--%</div>
+                <div id="compOldVersion" class="text-[10px] text-slate-500 mt-0.5">Baseline v1</div>
+              </div>
+              <div class="bg-console-950 p-2.5 rounded border border-emerald-900/60 relative">
+                <div class="text-[10px] text-emerald-400 uppercase font-semibold">Challenger Acc</div>
+                <div id="compNewAccuracy" class="text-2xl font-bold text-emerald-400 mt-1">--%</div>
+                <div id="compNewVersion" class="text-[10px] text-emerald-500 mt-0.5">Retrained Model</div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Net Gain Bar -->
-        <div class="mt-3 pt-2.5 border-t border-console-border/80 flex items-center justify-between font-mono">
+        <div id="compGainRow" class="mt-3 pt-2.5 border-t border-console-border/80 flex items-center justify-between font-mono hidden">
           <span class="text-[11px] text-slate-400">Drift Adaptation Recovery:</span>
           <span id="compGain" class="text-sm font-bold text-cyan-400">--%</span>
         </div>
@@ -374,7 +395,7 @@
 
     </div>
 
-    <!-- ==================== ROW 3: MLFLOW MODEL REGISTRY & AUDIT EVENT CONSOLE ==================== -->
+    <!-- ==================== ROW 4: MLFLOW MODEL REGISTRY & AUDIT EVENT CONSOLE ==================== -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
       
       <!-- MLflow Model Registry Table (5 Cols) -->
@@ -425,6 +446,26 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- ==================== ROW 5: DEMO ADMIN CONTROLS ==================== -->
+    <div class="console-panel p-3 border-dashed border-amber-900/50">
+      <div class="flex items-center justify-between pb-2 border-b border-amber-900/30 mb-3">
+        <div class="flex items-center space-x-2 font-mono text-[11px] font-semibold text-amber-400">
+          <i data-lucide="settings-2" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>DEMO ADMIN — FULL RESET FOR CLEAN DEMO RUN</span>
+        </div>
+        <span class="text-[10px] font-mono text-amber-700 bg-amber-950/40 border border-amber-900/60 px-2 py-0.5 rounded">DESTRUCTIVE — NOT FOR NORMAL OPERATION</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <p class="text-[11px] font-sans text-slate-400 flex-1">
+          Resets the feature store, reloads baseline v1, and wipes all historical pipeline events and model registry entries (except v1). Use before a demo to start from a clean v1 state without v25-style version counts confusing judges.
+        </p>
+        <button id="btnDemoReset" onclick="demoColdReset()" class="flex items-center justify-center space-x-2 px-4 py-2.5 rounded bg-amber-950/50 hover:bg-amber-900/60 border border-amber-800 text-amber-300 font-mono text-[11px] font-semibold transition whitespace-nowrap">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span id="btnDemoResetText">Full Demo Reset (v1 Cold Start)</span>
+        </button>
+      </div>
     </div>
 
   </main>
@@ -521,6 +562,133 @@
       }
     }
 
+    // --- Drift Score Trend History ---
+    const TREND_MAX = 60;
+    const driftScoreHistory = []; // values 0-5 (count of drifted features)
+
+    function pushDriftScore(score) {
+      driftScoreHistory.push(score);
+      if (driftScoreHistory.length > TREND_MAX) driftScoreHistory.shift();
+    }
+
+    function renderDriftTrendChart() {
+      const canvas = document.getElementById('driftTrendChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const W = rect.width, H = rect.height;
+      const PAD = { top: 6, right: 12, bottom: 18, left: 28 };
+      const chartW = W - PAD.left - PAD.right;
+      const chartH = H - PAD.top - PAD.bottom;
+      const MAX_VAL = 5;
+      const TRIGGER = 3;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Background grid lines
+      ctx.strokeStyle = '#1f2d42';
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i <= MAX_VAL; i++) {
+        const y = PAD.top + chartH - (i / MAX_VAL) * chartH;
+        ctx.beginPath();
+        ctx.moveTo(PAD.left, y);
+        ctx.lineTo(PAD.left + chartW, y);
+        ctx.stroke();
+        // Y axis labels
+        ctx.fillStyle = '#475569';
+        ctx.font = '9px JetBrains Mono, monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(i, PAD.left - 4, y + 3);
+      }
+
+      // X axis
+      ctx.strokeStyle = '#1f2d42';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(PAD.left, PAD.top + chartH);
+      ctx.lineTo(PAD.left + chartW, PAD.top + chartH);
+      ctx.stroke();
+
+      // Trigger threshold line (dashed)
+      const trigY = PAD.top + chartH - (TRIGGER / MAX_VAL) * chartH;
+      ctx.strokeStyle = '#f43f5e';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(PAD.left, trigY);
+      ctx.lineTo(PAD.left + chartW, trigY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Trigger label
+      ctx.fillStyle = '#f43f5e';
+      ctx.font = '8px JetBrains Mono, monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('≥3 → RETRAIN', PAD.left + 2, trigY - 3);
+
+      if (driftScoreHistory.length < 2) return;
+
+      // Area fill
+      const stepX = chartW / (TREND_MAX - 1);
+      const xFor = (i) => PAD.left + i * stepX;
+      const yFor = (v) => PAD.top + chartH - Math.min(1, v / MAX_VAL) * chartH;
+
+      // Gradient fill
+      const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + chartH);
+      grad.addColorStop(0, 'rgba(56,189,248,0.25)');
+      grad.addColorStop(1, 'rgba(56,189,248,0.02)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      const startIdx = TREND_MAX - driftScoreHistory.length;
+      driftScoreHistory.forEach((v, i) => {
+        const cx = xFor(startIdx + i);
+        const cy = yFor(v);
+        if (i === 0) ctx.moveTo(cx, cy);
+        else ctx.lineTo(cx, cy);
+      });
+      const lastX = xFor(startIdx + driftScoreHistory.length - 1);
+      ctx.lineTo(lastX, PAD.top + chartH);
+      ctx.lineTo(xFor(startIdx), PAD.top + chartH);
+      ctx.closePath();
+      ctx.fill();
+
+      // Line
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      driftScoreHistory.forEach((v, i) => {
+        const cx = xFor(startIdx + i);
+        const cy = yFor(v);
+        if (i === 0) ctx.moveTo(cx, cy);
+        else ctx.lineTo(cx, cy);
+      });
+      ctx.stroke();
+
+      // Dots for high drift
+      driftScoreHistory.forEach((v, i) => {
+        if (v >= TRIGGER) {
+          const cx = xFor(startIdx + i);
+          const cy = yFor(v);
+          ctx.fillStyle = '#f43f5e';
+          ctx.beginPath();
+          ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      // X axis label
+      ctx.fillStyle = '#475569';
+      ctx.font = '9px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`← ${driftScoreHistory.length} polls`, PAD.left + chartW / 2, H - 4);
+    }
+
     // Render Drift State in Header, DAG Topology and KS Table
     function renderDriftStatus(drift) {
       const headerBadge = document.getElementById('headerDriftBadge');
@@ -528,19 +696,24 @@
       const headerText = document.getElementById('headerDriftText');
       const driftNodeBox = document.getElementById('node-drift-box');
 
-      document.getElementById('currentWindowSamples').textContent = drift.current_samples || 0;
+      const currentSamples = drift.current_samples || 0;
+      document.getElementById('currentWindowSamples').textContent = currentSamples;
       document.getElementById('maxWindowSize').textContent = drift.window_size || 100;
       document.getElementById('diagWindowSize').textContent = drift.window_size || 100;
+
+      // Track and chart drift score
+      pushDriftScore(drift.drifted_features_count || 0);
+      renderDriftTrendChart();
 
       if (drift.drift_detected) {
         headerBadge.className = 'flex items-center space-x-1.5 px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-rose-950 text-rose-300 border border-rose-600 animate-pulse';
         headerDot.className = 'h-1.5 w-1.5 rounded-full bg-rose-400';
         headerText.textContent = `DRIFT DETECTED (${drift.drifted_features_count}/5)`;
         if (driftNodeBox) driftNodeBox.setAttribute('stroke', '#f43f5e');
-      } else if (drift.status === 'ACCUMULATING_DATA') {
+      } else if (drift.status === 'ACCUMULATING_DATA' || currentSamples < 20) {
         headerBadge.className = 'flex items-center space-x-1.5 px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-amber-950 text-amber-300 border border-amber-800';
         headerDot.className = 'h-1.5 w-1.5 rounded-full bg-amber-400';
-        headerText.textContent = `ACCUMULATING (${drift.current_samples}/20)`;
+        headerText.textContent = `ACCUMULATING (${currentSamples}/20)`;
         if (driftNodeBox) driftNodeBox.setAttribute('stroke', '#1f2d42');
       } else {
         headerBadge.className = 'flex items-center space-x-1.5 px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-950/80 text-emerald-300 border border-emerald-800';
@@ -553,9 +726,10 @@
       const tbody = document.getElementById('driftTableBody');
       const features = drift.features || {};
       const featKeys = Object.keys(features);
+      const awaiting = currentSamples < 15; // Below backend's KS minimum sample threshold
 
       if (featKeys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500 font-sans">No feature logs in active window.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500 font-sans">Accumulating samples — need at least 15 to run KS test.</td></tr>`;
         return;
       }
 
@@ -564,37 +738,56 @@
         const item = features[key];
         const pVal = item.p_value;
         const isDrift = item.is_drifted;
-        const pValPct = Math.min(100, Math.max(0, (pVal / 1.0) * 100));
 
-        html += `
-          <tr class="${isDrift ? 'bg-rose-950/30 text-rose-200' : 'hover:bg-console-850/50 text-slate-300'}">
-            <td class="py-1.5 px-2.5 font-bold ${isDrift ? 'text-rose-400' : 'text-slate-200'}">
-              ${key}
-            </td>
-            <td class="py-1.5 px-2.5 text-slate-400">${item.baseline_mean.toFixed(2)}</td>
-            <td class="py-1.5 px-2.5 ${isDrift ? 'text-rose-300 font-bold' : 'text-slate-300'}">${item.current_mean.toFixed(2)}</td>
-            <td class="py-1.5 px-2.5 text-slate-400">${item.ks_statistic.toFixed(4)}</td>
-            <td class="py-1.5 px-2.5">
-              <div class="space-y-0.5">
-                <div class="flex justify-between text-[10px]">
-                  <span class="${isDrift ? 'text-rose-400 font-bold' : 'text-slate-400'}">p = ${pVal.toFixed(4)}</span>
-                  <span class="text-slate-600 text-[9px]">0.05</span>
+        if (awaiting) {
+          // No real data yet — render awaiting state, not fake numbers
+          html += `
+            <tr class="hover:bg-console-850/50 text-slate-500">
+              <td class="py-1.5 px-2.5 font-bold text-slate-400">${key}</td>
+              <td class="py-1.5 px-2.5">${item.baseline_mean.toFixed(2)}</td>
+              <td class="py-1.5 px-2.5 text-slate-600">—</td>
+              <td class="py-1.5 px-2.5 text-slate-600">—</td>
+              <td class="py-1.5 px-2.5">
+                <div class="space-y-0.5">
+                  <div class="text-[10px] text-slate-600">awaiting data (${currentSamples}/15)</div>
+                  <div class="w-full bg-console-950 h-1.5 rounded-sm border border-slate-800">
+                    <div class="h-full bg-slate-700/40 rounded-sm" style="width: ${Math.round((currentSamples/15)*100)}%"></div>
+                  </div>
                 </div>
-                <div class="w-full bg-console-950 h-1.5 rounded-sm relative overflow-hidden border border-slate-800">
-                  <div class="absolute top-0 bottom-0 left-[5%] w-[1px] bg-rose-500 z-10"></div>
-                  <div class="h-full ${isDrift ? 'bg-rose-500' : 'bg-cyan-500'}" style="width: ${pValPct}%"></div>
+              </td>
+              <td class="py-1.5 px-2.5 text-right">
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-900 text-slate-500 border border-slate-800">AWAITING</span>
+              </td>
+            </tr>
+          `;
+        } else {
+          const pValPct = Math.min(100, Math.max(0, (pVal / 1.0) * 100));
+          html += `
+            <tr class="${isDrift ? 'bg-rose-950/30 text-rose-200' : 'hover:bg-console-850/50 text-slate-300'}">
+              <td class="py-1.5 px-2.5 font-bold ${isDrift ? 'text-rose-400' : 'text-slate-200'}">${key}</td>
+              <td class="py-1.5 px-2.5 text-slate-400">${item.baseline_mean.toFixed(2)}</td>
+              <td class="py-1.5 px-2.5 ${isDrift ? 'text-rose-300 font-bold' : 'text-slate-300'}">${item.current_mean.toFixed(2)}</td>
+              <td class="py-1.5 px-2.5 text-slate-400">${item.ks_statistic.toFixed(4)}</td>
+              <td class="py-1.5 px-2.5">
+                <div class="space-y-0.5">
+                  <div class="flex justify-between text-[10px]">
+                    <span class="${isDrift ? 'text-rose-400 font-bold' : 'text-slate-400'}">p = ${pVal.toFixed(4)}</span>
+                    <span class="text-slate-600 text-[9px]">0.05</span>
+                  </div>
+                  <div class="w-full bg-console-950 h-1.5 rounded-sm relative overflow-hidden border border-slate-800">
+                    <div class="absolute top-0 bottom-0 left-[5%] w-[1px] bg-rose-500 z-10"></div>
+                    <div class="h-full ${isDrift ? 'bg-rose-500' : 'bg-cyan-500'}" style="width: ${pValPct}%"></div>
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td class="py-1.5 px-2.5 text-right font-sans">
-              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
-                isDrift ? 'bg-rose-950 text-rose-300 border border-rose-800' : 'bg-emerald-950 text-emerald-300 border border-emerald-900'
-              }">
-                ${isDrift ? 'DRIFT' : 'OK'}
-              </span>
-            </td>
-          </tr>
-        `;
+              </td>
+              <td class="py-1.5 px-2.5 text-right font-sans">
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                  isDrift ? 'bg-rose-950 text-rose-300 border border-rose-800' : 'bg-emerald-950 text-emerald-300 border border-emerald-900'
+                }">${isDrift ? 'DRIFT' : 'OK'}</span>
+              </td>
+            </tr>
+          `;
+        }
       });
       tbody.innerHTML = html;
     }
@@ -642,8 +835,23 @@
           badgeColor = 'text-emerald-400 bg-emerald-950/60 border-emerald-800';
         } else if (e.event_type.includes('DRIFT')) {
           badgeColor = 'text-rose-400 bg-rose-950/60 border-rose-800';
-        } else if (e.event_type.includes('RETRAIN')) {
+        } else if (e.event_type.includes('RETRAIN') || e.event_type.includes('TRIGGERED')) {
           badgeColor = 'text-amber-400 bg-amber-950/60 border-amber-800';
+        } else if (e.event_type.includes('REJECTED')) {
+          badgeColor = 'text-orange-400 bg-orange-950/60 border-orange-800';
+        }
+
+        // Build causal drift detail for RETRAIN_TRIGGERED events
+        let causalDetail = '';
+        if ((e.event_type === 'RETRAIN_TRIGGERED' || e.event_type === 'DRIFT_DETECTED') && e.metadata) {
+          let meta = e.metadata;
+          if (typeof meta === 'string') { try { meta = JSON.parse(meta); } catch(_) {} }
+          if (meta && meta.breached_features) {
+            const breachedItems = Object.entries(meta.breached_features)
+              .map(([feat, pval]) => `<span class="text-rose-400">${feat}</span><span class="text-slate-500">=p${typeof pval === 'number' ? pval.toFixed(4) : pval}</span>`)
+              .join(' ');
+            causalDetail = `<div class="text-[10px] text-slate-500 mt-0.5 font-mono">↳ Breached: ${breachedItems}</div>`;
+          }
         }
 
         return `
@@ -654,6 +862,7 @@
                 <span class="text-slate-200 font-medium truncate">${e.title}</span>
               </div>
               ${e.details ? `<div class="text-[10px] text-slate-400 truncate">${e.details}</div>` : ''}
+              ${causalDetail}
             </div>
             <span class="text-slate-500 text-[10px] whitespace-nowrap">${timeStr}</span>
           </div>
@@ -664,28 +873,33 @@
     // Render Before/After Comparison
     function renderComparison(comp) {
       const badge = document.getElementById('comparisonBadge');
-      const oldAcc = document.getElementById('compOldAccuracy');
-      const newAcc = document.getElementById('compNewAccuracy');
-      const gain = document.getElementById('compGain');
+      const noDataState = document.getElementById('compNoDataState');
+      const dataState = document.getElementById('compDataState');
+      const gainRow = document.getElementById('compGainRow');
 
       if (comp.status === 'PROMOTED' && comp.old_accuracy_pct !== null) {
         badge.textContent = `Active: ${comp.new_version || 'v2'} PROMOTED`;
         badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800';
-        
-        oldAcc.textContent = `${comp.old_accuracy_pct}%`;
-        newAcc.textContent = `${comp.new_accuracy_pct}%`;
-        
-        const diff = comp.improvement_pct || (comp.new_accuracy_pct - comp.old_accuracy_pct);
-        gain.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}% recovery`;
-        gain.className = `text-sm font-bold font-mono ${diff >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+        noDataState.classList.add('hidden');
+        dataState.classList.remove('hidden');
+        gainRow.classList.remove('hidden');
+
+        document.getElementById('compOldAccuracy').textContent = `${comp.old_accuracy_pct}%`;
+        document.getElementById('compNewAccuracy').textContent = `${comp.new_accuracy_pct}%`;
         document.getElementById('compNewVersion').textContent = `${comp.new_version || 'Retrained'} Promoted`;
         document.getElementById('compOldVersion').textContent = `${comp.old_version || 'Baseline'} Champion`;
+
+        const diff = comp.improvement_pct || (comp.new_accuracy_pct - comp.old_accuracy_pct);
+        const gain = document.getElementById('compGain');
+        gain.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(1)}% recovery`;
+        gain.className = `text-sm font-bold font-mono ${diff >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
       } else {
-        badge.textContent = 'Awaiting Retrain';
-        badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded bg-console-950 text-slate-400 border border-console-border';
-        oldAcc.textContent = '--%';
-        newAcc.textContent = '--%';
-        gain.textContent = '--%';
+        // No retrain yet — show explicit empty state, not fake numbers
+        badge.textContent = 'No Retrain Yet';
+        badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded bg-console-950 text-slate-500 border border-console-border';
+        noDataState.classList.remove('hidden');
+        dataState.classList.add('hidden');
+        gainRow.classList.add('hidden');
       }
     }
 
@@ -788,6 +1002,35 @@
         pollDashboardData();
       }
     }
+
+    // Demo cold reset — wipes event log, model registry history (except v1), reloads baseline
+    async function demoColdReset() {
+      if (!confirm('FULL DEMO RESET: This will clear all pipeline events, reset the model registry to v1, and clear the feature window. This is destructive — continue?')) return;
+      const btn = document.getElementById('btnDemoReset');
+      const btnText = document.getElementById('btnDemoResetText');
+      btn.disabled = true;
+      btnText.textContent = 'Resetting for demo...';
+      try {
+        // 1. Stop any stream
+        await fetch(`${API_BASE}/simulate/stop`, { method: 'POST' });
+        // 2. Reset pipeline (clears window, reloads v1)
+        await fetch(`${API_BASE}/pipeline/reset`, { method: 'POST' });
+        // 3. Clear drift score history in chart
+        driftScoreHistory.length = 0;
+        renderDriftTrendChart();
+        showFeedback('Demo reset complete — pipeline at baseline v1, history cleared');
+      } catch (err) {
+        showFeedback('Demo reset failed', true);
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Full Demo Reset (v1 Cold Start)';
+        lucide.createIcons();
+        pollDashboardData();
+      }
+    }
+
+    // Re-render chart on window resize
+    window.addEventListener('resize', renderDriftTrendChart);
 
     // Initialize application, Lucide icons, and 2s Polling
     window.addEventListener('DOMContentLoaded', () => {

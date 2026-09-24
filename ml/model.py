@@ -36,16 +36,20 @@ def create_model_pipeline(model_type: str = "rf", random_state: int = 42) -> Pip
     scaler = StandardScaler()
     if model_type == "gb":
         classifier = GradientBoostingClassifier(
-            n_estimators=120,
-            learning_rate=0.08,
-            max_depth=4,
+            n_estimators=60,
+            learning_rate=0.10,
+            max_depth=3,
+            min_samples_split=8,
+            subsample=0.85,
             random_state=random_state,
         )
     else:
         classifier = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=6,
-            min_samples_split=4,
+            n_estimators=60,
+            max_depth=4,
+            min_samples_split=8,
+            min_samples_leaf=4,
+            max_features="sqrt",
             random_state=random_state,
             n_jobs=-1,
         )

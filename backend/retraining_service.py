@@ -55,7 +55,7 @@ class RetrainingService:
     def latest_comparison(self) -> Dict[str, Any]:
         return dict(self._latest_comparison)
 
-    def trigger_retrain(self, reason: str = "MANUAL_TRIGGER") -> Dict[str, Any]:
+    def trigger_retrain(self, reason: str = "MANUAL_TRIGGER", breached_features: dict = None) -> Dict[str, Any]:
         """
         Executes an end-to-end retraining pipeline:
         1. Aggregates baseline + drifted training data.
@@ -83,7 +83,11 @@ class RetrainingService:
                 event_type="RETRAIN_TRIGGERED",
                 title=f"Retraining Triggered ({reason})",
                 details=f"Starting training run for challenger {challenger_version} triggered by {reason}.",
-                metadata={"reason": reason, "current_version": current_version}
+                metadata={
+                    "reason": reason,
+                    "current_version": current_version,
+                    "breached_features": breached_features or {},
+                }
             )
 
             # 1. Prepare Augmented Training Dataset

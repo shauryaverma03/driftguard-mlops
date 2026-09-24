@@ -79,7 +79,10 @@ class TrafficSimulator:
             if self._streamed_count % 10 == 0:
                 drift_res = drift_detector.check_drift()
                 if drift_res.get("drift_detected") and settings.AUTO_RETRAIN_ENABLED and not retraining_service.is_retraining:
-                    retraining_service.trigger_retrain(reason="AUTO_DRIFT_DETECTED")
+                    retraining_service.trigger_retrain(
+                        reason="AUTO_DRIFT_DETECTED",
+                        breached_features=drift_res.get("breached_features", {}),
+                    )
 
             time.sleep(interval)
 
@@ -145,7 +148,10 @@ class TrafficSimulator:
 
         retrain_result = None
         if drift_res.get("drift_detected") and settings.AUTO_RETRAIN_ENABLED and not retraining_service.is_retraining:
-            retrain_result = retraining_service.trigger_retrain(reason="DRIFT_INJECTION_TRIGGER")
+            retrain_result = retraining_service.trigger_retrain(
+                reason="DRIFT_INJECTION_TRIGGER",
+                breached_features=drift_res.get("breached_features", {}),
+            )
 
         return {
             "status": "DRIFT_INJECTED",

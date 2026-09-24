@@ -100,6 +100,13 @@ class DriftDetector:
         if current_samples < 20:
             status_str = "ACCUMULATING_DATA"
 
+        # Build breached features mapping: {feature_name: p_value} for drifted features
+        breached_features = {
+            col: feature_results[col]["p_value"]
+            for col in feature_results
+            if feature_results[col]["is_drifted"]
+        }
+
         # Record check in database
         record_drift_check(
             window_size=current_samples,
@@ -118,6 +125,7 @@ class DriftDetector:
             "min_features_drifted_threshold": min_drifted_features,
             "p_value_threshold": p_threshold,
             "features": feature_results,
+            "breached_features": breached_features,
         }
 
 
