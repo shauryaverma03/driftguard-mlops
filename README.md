@@ -18,6 +18,10 @@
 
 > A model trained once and left alone degrades silently the moment the world it's watching changes. DriftGuard detects when live trade patterns drift away from training — then retrains, validates, and hot-swaps without human intervention.
 
+<p align="center">
+  <img src="assets/console_dashboard.png" alt="DriftGuard Live Operations Console" width="100%" />
+</p>
+
 ---
 
 ## What It Does
@@ -83,11 +87,16 @@ Traffic Simulator ──► FastAPI /predict ──► SQLite Feature Log
 
 ```bash
 # 1. Setup environment
+# On macOS / Linux:
 python3 -m venv .venv && source .venv/bin/activate
+# On Windows (PowerShell):
+python -m venv .venv; .venv\Scripts\Activate.ps1
+
 pip install --upgrade pip && pip install -r requirements.txt
 
 # 2. Initialize baseline model and training data
 PYTHONPATH=. python3 -m ml.train_baseline
+# On Windows: python -m ml.train_baseline
 
 # 3. Start services (two terminals)
 # Terminal 1 — API Server + Live Dashboard
@@ -110,10 +119,19 @@ docker-compose up --build
 
 | Interface | URL | Description |
 |:---|:---|:---|
-| **Operations Console** | `http://127.0.0.1:8000/` | Live drift radar, controls, model registry |
-| **API Docs** | `http://127.0.0.1:8000/docs` | Swagger UI for all endpoints |
-| **MLflow Registry** | `http://127.0.0.1:5001/` | Experiment runs and model stage transitions |
-| **Prometheus Metrics** | `http://127.0.0.1:8000/metrics` | Raw scrape endpoint |
+| **Operations Console** | `http://127.0.0.1:8000/` | Live drift radar, controls, validation gate, model registry |
+| **API Docs** | `http://127.0.0.1:8000/docs` | Swagger UI for all REST endpoints |
+| **MLflow Registry** | `http://127.0.0.1:5001/` | Experiment tracking runs and model stage transitions |
+| **Prometheus Metrics** | `http://127.0.0.1:8000/metrics` | Raw scrape endpoint for telemetry & alerts |
+
+### Console Dashboard Highlights
+
+- **Live Pipeline Topology**: Real-time status display across all pipeline stages (`/predict` Serving $\rightarrow$ SQLite Window $\rightarrow$ KS 2-Sample Test $\rightarrow$ Retrain Val-Gate $\rightarrow$ Hot-Swap Deployment).
+- **Interactive Action Controls**: One-click actions to stream live market traffic (`5 req/s`), inject targeted 50-sample drift bursts, trigger manual retraining, or reset the rolling window.
+- **Kolmogorov–Smirnov Drift Radar**: Real-time per-feature distribution analytics (baseline mean, window mean, KS statistic, and dynamic $p$-value progress bars with $p < 0.05$ threshold alerts).
+- **Validation Gate Benchmark Card**: Head-to-head comparison between current Champion and newly trained Challenger on held-out drifted market benchmarks, showing accuracy gain and promotion state (`Active: PROMOTED`).
+- **MLflow Model Registry Feed**: Real-time view of registered models, algorithm families (`RandomForest`, `GradientBoosting`), validation F1-scores, and stage transitions.
+- **Audit Event Stream**: Persistent SQLite-backed audit log capturing all pipeline events, drift breaches, and model promotions.
 
 ---
 
@@ -223,6 +241,8 @@ PYTHONPATH=. .venv/bin/pytest tests/ -v
 
 ```
 driftguard-mlops/
+├── assets/
+│   └── console_dashboard.png # Operations console dashboard preview
 ├── backend/
 │   ├── main.py               # FastAPI app, all API routes
 │   ├── drift_detector.py     # KS-test drift engine

@@ -50,6 +50,10 @@ mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5001
 
 ## 🎯 Live 3-Minute Hackathon Demo Script
 
+<p align="center">
+  <img src="assets/console_dashboard.png" alt="DriftGuard Live UI" width="100%" />
+</p>
+
 1. **Open the Dashboard**: Go to [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
    - Point out **System State: HEALTHY**, active model version **`v1`** (Production), and the real-time KS p-value progress bars ($p > 0.05$).
 2. **Stream Normal Trades**: Click **"Stream Normal Traffic"**.
